@@ -105,7 +105,7 @@ namespace maskx.AzurePolicy.Extensions
                     foreach (var item in e2.EnumerateArray())
                     {
                         if (path.Count == 0)
-                            list.Add(item.GetValue(functions, context));
+                            list.Add(item.GetEvaluatedValue(functions, context));
                         else
                             list.AddRange(e2.GetElements(path, functions, context));
                     }
@@ -117,7 +117,7 @@ namespace maskx.AzurePolicy.Extensions
                 {
 
                     if (path.Count == 0)
-                        list.Add(e1.GetValue(functions, context));
+                        list.Add(e1.GetEvaluatedValue(functions, context));
                     else
                         list.AddRange(e1.GetElements(path, functions, context));
                 }
@@ -125,7 +125,7 @@ namespace maskx.AzurePolicy.Extensions
             return list;
         }
 
-        public static object GetValue(this JsonElement self, ARMFunctions functions, Dictionary<string, object> context)
+        public static object GetEvaluatedValue(this JsonElement self, ARMFunctions functions, Dictionary<string, object> context)
         {
             switch (self.ValueKind)
             {
@@ -138,6 +138,7 @@ namespace maskx.AzurePolicy.Extensions
                     return self.GetBoolean();
                 case JsonValueKind.Object:
                 case JsonValueKind.Array:
+                    return new JsonValue(self.GetRawText());
                 case JsonValueKind.Null:
                 case JsonValueKind.Undefined:
                 default:

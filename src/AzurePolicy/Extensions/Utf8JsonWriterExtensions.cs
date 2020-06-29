@@ -1,4 +1,5 @@
-﻿using maskx.AzurePolicy.Functions;
+﻿using maskx.ARMOrchestration.Functions;
+using maskx.AzurePolicy.Functions;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -40,7 +41,10 @@ namespace maskx.AzurePolicy.Extensions
                 case JsonValueKind.String:
                     var r = function.Evaluate(element.GetString(), context);
                     if (r is JsonValue j)
-                        j.RootElement.WriteTo(writer);
+                    {
+                        using var doc = JsonDocument.Parse(j.ToString());
+                        doc.RootElement.WriteTo(writer);
+                    }
                     else if (r is bool b)
                         writer.WriteBooleanValue(b);
                     else if (r is string s)

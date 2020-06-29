@@ -93,17 +93,11 @@ namespace maskx.AzurePolicy.Services
             });
             this._Conditions.Add("in", (left, right) =>
             {
-                var s = left.ToString().Split('*');
-                var r = right.ToString();
-                // TODO: in
-                return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+                return (left as JsonValue).Contains(right);
             });
             this._Conditions.Add("notin", (left, right) =>
             {
-                var s = left.ToString().Split('*');
-                var r = right.ToString();
-                // TODO: notIn
-                return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+                return !(left as JsonValue).Contains(right);
             });
             this._Conditions.Add("containskey", (left, right) =>
             {
@@ -177,7 +171,7 @@ namespace maskx.AzurePolicy.Services
                                 { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployCxt }
                             });
                         if (!path.Contains("[*]"))
-                            right = (right as IEnumerable<JsonElement>).First().GetValue(_ARMFunctions, context);
+                            right = (right as IEnumerable<JsonElement>).First().GetEvaluatedValue(_ARMFunctions, context);
                     }
                     else
                     {
@@ -198,7 +192,7 @@ namespace maskx.AzurePolicy.Services
                 }
                 else if (_Conditions.TryGetValue(item.Name.ToLower(), out func))
                 {
-                    left = item.Value.GetValue(_ARMFunctions, context);
+                    left = item.Value.GetEvaluatedValue(_ARMFunctions, context);
                 }
             }
             if (func == null)
@@ -238,7 +232,7 @@ namespace maskx.AzurePolicy.Services
             var e = root.GetElementDotWithoutException(fieldPath);
             if (e.IsEqual(default))
                 return null;
-            return e.GetValue(_ARMFunctions, context);
+            return e.GetEvaluatedValue(_ARMFunctions, context);
         }
 
         public int Count(JsonElement element, Dictionary<string, object> context, string namePath = "")
@@ -248,8 +242,7 @@ namespace maskx.AzurePolicy.Services
             var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentContext;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
             var path = this._PolicyFunction.Evaluate(fieldE.GetString(), context).ToString();
-            var d = Field(path, policyCxt.Resource, deployCxt, namePath) as List<object>;
-            if (d == null)
+            if (!(Field(path, policyCxt.Resource, deployCxt, namePath) is List<object> d))
                 return 0;
             if (element.TryGetProperty("where", out JsonElement whereE))
             {

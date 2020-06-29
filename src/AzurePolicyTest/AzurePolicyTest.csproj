@@ -20,7 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="JSON\policy\Condition_NotIn.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="JSON\policy\Count_NoWhere.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\Condition_In.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="JSON\policy\field_fullName.json">

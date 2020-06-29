@@ -12,15 +12,6 @@ namespace AzurePolicyTest
         {
             this.fixture = fixture;
         }
-        [Fact(DisplayName = "Test1")]
-        public void Test1()
-        {
-            this.fixture.PolicyService.Validate(new DeploymentContext()
-            {
-                SubscriptionId = TestHelper.SubscriptionId,
-                ResourceGroup = TestHelper.ResourceGroup,
-                TemplateContent= TestHelper.GetJsonFileContent("json/template/vm")
-            });
-        }
+        
     }
 }
