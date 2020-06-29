@@ -171,7 +171,11 @@ namespace maskx.AzurePolicy.Services
                     {
                         path = path.Remove(0, countFiled.ToString().Length);
                         var paths = path.Split('.').ToList();
-                        right = ((JsonElement)context[Functions.ContextKeys.COUNT_ELEMENT]).GetElements(paths);
+                        right = ((JsonElement)context[Functions.ContextKeys.COUNT_ELEMENT]).GetElements(paths,
+                            _ARMFunctions,
+                            new Dictionary<string, object>() {
+                                { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployCxt }
+                            });
                         if (!path.Contains("[*]"))
                             right = (right as IEnumerable<JsonElement>).First().GetValue(_ARMFunctions, context);
                     }
@@ -186,7 +190,7 @@ namespace maskx.AzurePolicy.Services
                 }
                 else if ("count".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    var r = Count(item.Value, context);
+                    var r = Count(item.Value, context, policyCxt.NamePath);
                     if (r == -1)// https://docs.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#count
                         return false;
                     else
@@ -211,12 +215,12 @@ namespace maskx.AzurePolicy.Services
             {
                 string fullType = GetFullType(deployDontext, namePath, root);
                 if (!fieldPath.StartsWith(fullType))
-                    return null;
-                var p = fieldPath.Remove(0, fullType.Length);
-                var r = root.GetProperty("properties").GetElements(p.Split('.').ToList());
+                    return -1;
+                var p = fieldPath.Remove(0, fullType.Length+1);
+                var r = root.GetProperty("properties").GetElements(p.Split('.').ToList(), _ARMFunctions, context);
                 if (p.Contains("[*]"))
                     return r;
-                return r.First().GetValue(_ARMFunctions, context);
+                return r.First();
             }
             else if ("fullName".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
             {
@@ -237,14 +241,16 @@ namespace maskx.AzurePolicy.Services
             return e.GetValue(_ARMFunctions, context);
         }
 
-        public int Count(JsonElement element, Dictionary<string, object> context)
+        public int Count(JsonElement element, Dictionary<string, object> context, string namePath = "")
         {
-            if (element.TryGetProperty("field", out JsonElement fieldE))
+            if (!element.TryGetProperty("field", out JsonElement fieldE))
                 return -1;
             var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentContext;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
             var path = this._PolicyFunction.Evaluate(fieldE.GetString(), context).ToString();
-            var d = Field(path, policyCxt.Resource, deployCxt) as IEnumerable<JsonElement>;
+            var d = Field(path, policyCxt.Resource, deployCxt, namePath) as List<object>;
+            if (d == null)
+                return 0;
             if (element.TryGetProperty("where", out JsonElement whereE))
             {
                 var logical = this._ServiceProvider.GetService<Logical>();
@@ -268,14 +274,14 @@ namespace maskx.AzurePolicy.Services
                 throw new Exception("cannot find 'type' property");
             var type = this._ARMFunctions.Evaluate(typeE.GetString(), new Dictionary<string, object>()
                 {
-                    {maskx.ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
+                    {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
 
                 }).ToString();
             if (string.IsNullOrEmpty(namePath))
                 return type;
-            string fulltype = GetParentType(context.ApiVersion, namePath.Split('/'), new Dictionary<string, object>()
+            string fulltype = GetParentType(context.TemplateContent, namePath.Split('/'), new Dictionary<string, object>()
                 {
-                    { maskx.ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
+                    { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
 
                 });
             return $"{fulltype}/{type}";

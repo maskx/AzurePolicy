@@ -92,8 +92,9 @@ namespace maskx.AzurePolicy.Extensions
             }
             return e;
         }
-        public static IEnumerable<JsonElement> GetElements(this JsonElement self, List<string> path)
+        public static List<object> GetElements(this JsonElement self, List<string> path, ARMFunctions functions, Dictionary<string, object> context)
         {
+            List<object> list = new List<object>();
             JsonElement e = self;
             var p = path[0];
             path.RemoveAt(0);
@@ -104,30 +105,24 @@ namespace maskx.AzurePolicy.Extensions
                     foreach (var item in e2.EnumerateArray())
                     {
                         if (path.Count == 0)
-                            yield return item;
+                            list.Add(item.GetValue(functions, context));
                         else
-                            foreach (var r in e2.GetElements(path))
-                            {
-                                yield return r;
-                            }
+                            list.AddRange(e2.GetElements(path, functions, context));
                     }
                 }
-                else
-                    yield break;
             }
             else
             {
-                if (!e.TryGetProperty(p, out JsonElement e1))
-                    yield break;
-                if (path.Count == 0)
-                    yield return e1;
-                else
-                    foreach (var item in e1.GetElements(path))
-                    {
-                        yield return item;
-                    }
-            }
+                if (e.TryGetProperty(p, out JsonElement e1))
+                {
 
+                    if (path.Count == 0)
+                        list.Add(e1.GetValue(functions, context));
+                    else
+                        list.AddRange(e1.GetElements(path, functions, context));
+                }
+            }
+            return list;
         }
 
         public static object GetValue(this JsonElement self, ARMFunctions functions, Dictionary<string, object> context)
