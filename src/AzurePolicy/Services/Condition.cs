@@ -36,17 +36,61 @@ namespace maskx.AzurePolicy.Services
             // When using the like and notLike conditions, you provide a wildcard * in the value. The value shouldn't have more than one wildcard *.
             this._Conditions.Add("like", (left, right) =>
             {
+                if (right.ToString().Equals("*"))
+                {
+                    return true;
+                }
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
-                // TODO: like
-                return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+                if (s.Length < 2)
+                {
+                    throw new Exception("value field not contains *");
+                }
+                else if (s.Length > 2)
+                {
+                    throw new Exception("value field only contains one *");
+                }
+                if (string.IsNullOrEmpty(s[0]))
+                {
+                    return (r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase));
+                }
+                else if (string.IsNullOrEmpty(s[1]))
+                {
+                    return r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    return (r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase) && r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase));
+                }
             });
             this._Conditions.Add("notlike", (left, right) =>
             {
+                if (right.ToString().Equals("*"))
+                {
+                    return false;
+                }
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
-                // TODO: notLike
-                return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+                if (s.Length < 2)
+                {
+                    throw new Exception("value field not contains *");
+                }
+                else if (s.Length > 2)
+                {
+                    throw new Exception("value field only contains one *");
+                }
+                if (string.IsNullOrEmpty(s[0]))
+                {
+                    return (!r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase));
+                }
+                else if (string.IsNullOrEmpty(s[1]))
+                {
+                    return !r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    return ((!r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase)) || (!r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase)));
+                }
             });
             // When using the match and notMatch conditions, provide # to match a digit, ? for a letter, . to match any character, and any other character to match that actual character. While match and notMatch are case-sensitive, all other conditions that evaluate a stringValue are case-insensitive. Case-insensitive alternatives are available in matchInsensitively and notMatchInsensitively.
             this._Conditions.Add("match", (left, right) =>
@@ -79,25 +123,19 @@ namespace maskx.AzurePolicy.Services
             });
             this._Conditions.Add("contains", (left, right) =>
             {
-                var s = left.ToString().Split('*');
-                var r = right.ToString();
-                // TODO: contains
-                return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+                return (left as JsonValue).Contains(right);
             });
             this._Conditions.Add("notcontains", (left, right) =>
             {
-                var s = left.ToString().Split('*');
-                var r = right.ToString();
-                // TODO: notContains
-                return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+                return !(left as JsonValue).Contains(right);
             });
             this._Conditions.Add("in", (left, right) =>
             {
-                return (left as JsonValue).Contains(right);
+                return (right as JsonValue).Contains(left);
             });
             this._Conditions.Add("notin", (left, right) =>
             {
-                return !(left as JsonValue).Contains(right);
+                return !(right as JsonValue).Contains(left);
             });
             this._Conditions.Add("containskey", (left, right) =>
             {
@@ -300,6 +338,11 @@ namespace maskx.AzurePolicy.Services
             }
             return string.Join('/', types);
 
+        }
+
+        private bool Match(string left,string right)
+        {
+            return false;
         }
     }
 }
