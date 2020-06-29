@@ -1,4 +1,5 @@
-﻿using maskx.AzurePolicy.Functions;
+﻿using maskx.ARMOrchestration.Functions;
+using maskx.AzurePolicy.Functions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -129,12 +130,12 @@ namespace maskx.AzurePolicy.Extensions
 
         }
 
-        public static object GetValue(this JsonElement self)
+        public static object GetValue(this JsonElement self, ARMFunctions functions, Dictionary<string, object> context)
         {
             switch (self.ValueKind)
             {
                 case JsonValueKind.String:
-                    return self.GetString();
+                    return functions.Evaluate(self.GetString(), context);
                 case JsonValueKind.Number:
                     return self.GetInt32();
                 case JsonValueKind.True:

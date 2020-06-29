@@ -7,12 +7,20 @@ namespace AzurePolicyTest.Mock
 {
     public class MockInfrastructure : IInfrastructure
     {
-        public BuiltinServiceType BuitinServiceTypes { get; set; }
-        public BuiltinPathSegment BuiltinPathSegment { get; set; }
+        public BuiltinServiceType BuitinServiceTypes { get; set; } = new BuiltinServiceType();
+        public BuiltinPathSegment BuiltinPathSegment { get; set; } = new BuiltinPathSegment();
 
         public List<(PolicyDefinition PolicyDefinition, string Parameter)> GetPolicyDefinitions(string scope, EvaluatingPhase evaluatingPhase)
         {
             var rtv = new List<(PolicyDefinition PolicyDefinition, string Parameter)>();
+            var seg = scope.Split("/");
+            var sub = seg[2];
+            var rg = seg[^1];
+            rtv.Add((PolicyDefinition.Parse(TestHelper.GetJsonFileContent($"JSON/policy/{sub}_{rg}")),
+                string.Empty));
+            if (sub== "Effect" && rg == "Disabled")
+                rtv.Add((PolicyDefinition.Parse(TestHelper.GetJsonFileContent("JSON/policy/effect_deny")),
+                string.Empty));
             return rtv;
         }
 

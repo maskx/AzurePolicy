@@ -8,8 +8,8 @@ namespace maskx.AzurePolicy.Services
 {
     public class Effect
     {
-        public const string DisabledEffectName = "Disabled";
-        public const string DenyEffectName = "Deny";
+        public const string DisabledEffectName = "disabled";
+        public const string DenyEffectName = "deny";
         public const int DefaultPriority = 100;
         private readonly Dictionary<string, Func<string, Dictionary<string, object>, string>> _Effects = new Dictionary<string, Func<string, Dictionary<string, object>, string>>();
         private readonly Dictionary<string, int> _EffectPriority = new Dictionary<string, int>();

@@ -1,4 +1,5 @@
 ﻿using AzurePolicyTest.Mock;
+using maskx.ARMOrchestration.Orchestrations;
 using maskx.AzurePolicy;
 using maskx.AzurePolicy.Extensions;
 using maskx.AzurePolicy.Services;
@@ -25,12 +26,18 @@ namespace AzurePolicyTest
              })
              .ConfigureServices((hostContext, services) =>
              {
+                 services.AddSingleton<maskx.ARMOrchestration.IInfrastructure, MockARMInfrastructure>();
                  services.AddSingleton<IInfrastructure,MockInfrastructure>();
                  services.UsingPolicyService();
              }).Build();
             workerHost.RunAsync();
             this.ServiceProvider = workerHost.Services;
             this.PolicyService = this.ServiceProvider.GetService<PolicyService>();
+            var effect= this.ServiceProvider.GetService<Effect>();
+            effect.SetEffect("ForTesting", (detail, context) =>
+            {
+                return (context[maskx.ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT] as DeploymentContext).TemplateContent;
+            });
         }
     }
     [CollectionDefinition("WebHost PolicyService")]

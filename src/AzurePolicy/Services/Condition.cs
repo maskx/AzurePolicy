@@ -27,21 +27,21 @@ namespace maskx.AzurePolicy.Services
         {
             this._Conditions.Add("equals", (left, right) =>
             {
-                return string.Equals(left.ToString(), right.ToString(),StringComparison.OrdinalIgnoreCase);
+                return string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("notEquals", (left, right) =>
+            this._Conditions.Add("notequals", (left, right) =>
             {
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
             // When using the like and notLike conditions, you provide a wildcard * in the value. The value shouldn't have more than one wildcard *.
             this._Conditions.Add("like", (left, right) =>
             {
-               var s= left.ToString().Split('*');
+                var s = left.ToString().Split('*');
                 var r = right.ToString();
                 // TODO: like
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("notLike", (left, right) =>
+            this._Conditions.Add("notlike", (left, right) =>
             {
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
@@ -56,21 +56,21 @@ namespace maskx.AzurePolicy.Services
                 // TODO: match
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("matchInsensitively", (left, right) =>
+            this._Conditions.Add("matchinsensitively", (left, right) =>
             {
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
                 // TODO: matchInsensitively
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("notMatch", (left, right) =>
+            this._Conditions.Add("notmatch", (left, right) =>
             {
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
                 // TODO: notMatch
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("notMatchInsensitively", (left, right) =>
+            this._Conditions.Add("notmatchinsensitively", (left, right) =>
             {
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
@@ -84,7 +84,7 @@ namespace maskx.AzurePolicy.Services
                 // TODO: contains
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("notContains", (left, right) =>
+            this._Conditions.Add("notcontains", (left, right) =>
             {
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
@@ -98,21 +98,21 @@ namespace maskx.AzurePolicy.Services
                 // TODO: in
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("notIn", (left, right) =>
+            this._Conditions.Add("notin", (left, right) =>
             {
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
                 // TODO: notIn
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("containsKey", (left, right) =>
+            this._Conditions.Add("containskey", (left, right) =>
             {
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
                 // TODO: containsKey
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("notContainsKey", (left, right) =>
+            this._Conditions.Add("notcontainskey", (left, right) =>
             {
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
@@ -126,7 +126,7 @@ namespace maskx.AzurePolicy.Services
                 // TODO: less
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("lessOrEquals", (left, right) =>
+            this._Conditions.Add("lessorequals", (left, right) =>
             {
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
@@ -140,7 +140,7 @@ namespace maskx.AzurePolicy.Services
                 // TODO: greater
                 return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
             });
-            this._Conditions.Add("greaterOrEquals", (left, right) =>
+            this._Conditions.Add("greaterorequals", (left, right) =>
             {
                 var s = left.ToString().Split('*');
                 var r = right.ToString();
@@ -173,11 +173,11 @@ namespace maskx.AzurePolicy.Services
                         var paths = path.Split('.').ToList();
                         right = ((JsonElement)context[Functions.ContextKeys.COUNT_ELEMENT]).GetElements(paths);
                         if (!path.Contains("[*]"))
-                            right = (right as IEnumerable<JsonElement>).First().GetValue();
+                            right = (right as IEnumerable<JsonElement>).First().GetValue(_ARMFunctions, context);
                     }
                     else
                     {
-                        right = Field(path, policyCxt.Resource, deployCxt,policyCxt.NamePath);
+                        right = Field(path, policyCxt.Resource, deployCxt, policyCxt.NamePath);
                     }
                 }
                 else if ("value".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
@@ -192,50 +192,47 @@ namespace maskx.AzurePolicy.Services
                     else
                         right = r;
                 }
-                else if (_Conditions.TryGetValue(item.Name, out func))
+                else if (_Conditions.TryGetValue(item.Name.ToLower(), out func))
                 {
-                    left = item.Value.GetValue();
+                    left = item.Value.GetValue(_ARMFunctions, context);
                 }
             }
             if (func == null)
                 throw new Exception("cannot find conditions");
             return func(left, right);
         }
-        public object Field(string fieldPath, string resource, DeploymentContext context, string namePath = "")
+        public object Field(string fieldPath, string resource, DeploymentContext deployDontext, string namePath = "")
         {
             using var doc = JsonDocument.Parse(resource);
             var root = doc.RootElement;
+            var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployDontext } };
 
             if (fieldPath.Contains('/'))//property aliases
             {
-                string fullType = GetFullType(context, namePath, root);
+                string fullType = GetFullType(deployDontext, namePath, root);
                 if (!fieldPath.StartsWith(fullType))
                     return null;
                 var p = fieldPath.Remove(0, fullType.Length);
                 var r = root.GetProperty("properties").GetElements(p.Split('.').ToList());
                 if (p.Contains("[*]"))
                     return r;
-                return r.First().GetValue();
+                return r.First().GetValue(_ARMFunctions, context);
             }
             else if ("fullName".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
             {
                 if (root.TryGetProperty("name", out JsonElement nameE))
                     throw new Exception("cannot find 'name' property");
-                var name = this._ARMFunctions.Evaluate(nameE.GetString(), new Dictionary<string, object>()
-                {
-                    {maskx.ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
-
-                }).ToString();
+                var name = this._ARMFunctions.Evaluate(nameE.GetString(), context).ToString();
                 return $"{namePath}/{name}";
             }
             else if ("type".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
             {
-                return GetFullType(context, namePath, root);
+                return GetFullType(deployDontext, namePath, root);
             }
             var e = root.GetElementDotWithoutException(fieldPath);
             if (e.IsEqual(default))
                 return null;
-            return e.GetValue();
+            return e.GetValue(_ARMFunctions, context);
         }
 
         public int Count(JsonElement element, Dictionary<string, object> context)
@@ -265,7 +262,7 @@ namespace maskx.AzurePolicy.Services
         }
         private string GetFullType(DeploymentContext context, string namePath, JsonElement root)
         {
-            if (root.TryGetProperty("type", out JsonElement typeE))
+            if (!root.TryGetProperty("type", out JsonElement typeE))
                 throw new Exception("cannot find 'type' property");
             var type = this._ARMFunctions.Evaluate(typeE.GetString(), new Dictionary<string, object>()
                 {

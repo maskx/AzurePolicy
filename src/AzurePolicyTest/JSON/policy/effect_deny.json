@@ -12,10 +12,9 @@
       "if": {
         "field": "type",
         "equals": "Microsoft.Compute/virtualMachines"
-
       },
       "then": {
-        "effect": "Deny"
+        "effect": "deny"
       }
     }
   },

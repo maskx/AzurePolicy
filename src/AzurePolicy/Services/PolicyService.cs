@@ -1,4 +1,5 @@
-﻿using maskx.ARMOrchestration.Functions;
+﻿using maskx.ARMOrchestration.ARMTemplate;
+using maskx.ARMOrchestration.Functions;
 using maskx.ARMOrchestration.Orchestrations;
 using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Functions;
@@ -24,11 +25,38 @@ namespace maskx.AzurePolicy.Services
             this._ARMFunction = aRMFunctions;
             this._Effect = effect;
         }
+        public static Template Parse(string content)
+        {
+            Template template = new Template();
+            using JsonDocument doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            if (root.TryGetProperty("$schema", out JsonElement schema))
+                template.Schema = schema.GetString();
+            if (root.TryGetProperty("contentVersion", out JsonElement contentVersion))
+                template.ContentVersion = contentVersion.GetString();
+            if (template.Schema.EndsWith("deploymentTemplate.json#", StringComparison.InvariantCultureIgnoreCase))
+                template.DeployLevel = DeployLevel.ResourceGroup;
+            else if (template.Schema.EndsWith("subscriptionDeploymentTemplate.json#", StringComparison.InvariantCultureIgnoreCase))
+                template.DeployLevel = DeployLevel.Subscription;
+            else if (template.Schema.EndsWith("managementGroupDeploymentTemplate.json#", StringComparison.InvariantCultureIgnoreCase))
+                template.DeployLevel = DeployLevel.ManagemnetGroup;
+            if (root.TryGetProperty("apiProfile", out JsonElement apiProfile))
+                template.ApiProfile = apiProfile.GetString();
+            if (root.TryGetProperty("parameters", out JsonElement parameters))
+                template.Parameters = parameters.GetRawText();
+            if (root.TryGetProperty("outputs", out JsonElement outputs))
+                template.Outputs = outputs.GetRawText();
+            return template;
+        }
         /// <summary>
         /// run at create resource phase
         /// </summary>
         public ValidationResult Validate(DeploymentContext deploymentContext)
         {
+            // TODO: replace this with ARMOrchestration's function
+            deploymentContext.Template = Parse(deploymentContext.TemplateContent);
+
             var scope = "";
             if (!string.IsNullOrEmpty(deploymentContext.SubscriptionId))
             {
@@ -48,13 +76,14 @@ namespace maskx.AzurePolicy.Services
             }
             using var doc = JsonDocument.Parse(deploymentContext.TemplateContent);
             var deniedPolicy = new List<PolicyDefinition>();
-            foreach (var policy in d.OrderBy((e) => { return 1; }))
+            var context = new Dictionary<string, object>();
+            foreach (var policy in d.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
             {
-                if (policy.PolicyDefinition.EffectName == Effect.DisabledEffectName)
-                    return new ValidationResult() { Result = true, Message = "meet disabled policy", Template = deploymentContext.TemplateContent };
+                if (string.Equals(policy.PolicyDefinition.EffectName, Effect.DisabledEffectName, StringComparison.OrdinalIgnoreCase))
+                    continue;
                 foreach (var resource in doc.RootElement.GetProperty("resources").EnumerateArray())
                 {
-                    Validate(policy.PolicyDefinition, policy.Parameter, resource, deploymentContext, string.Empty);
+                    deniedPolicy.AddRange(Validate(policy.PolicyDefinition, policy.Parameter, resource, deploymentContext, string.Empty));
                 }
             }
             return new ValidationResult()

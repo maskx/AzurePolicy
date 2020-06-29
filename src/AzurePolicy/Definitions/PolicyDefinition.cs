@@ -1,5 +1,6 @@
-﻿using maskx.AzurePolicy.Services;
+﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace maskx.AzurePolicy.Definitions
 {
@@ -17,9 +18,21 @@ namespace maskx.AzurePolicy.Definitions
         public string Mode { get; set; }
         public string Metadata { get; set; }
         public string Parameters { get; set; }
-        public PolicyRule PolicyRule { get; set; }
+        public PolicyRule PolicyRule { get; set; } = new PolicyRule();
         internal int EffectPriority { get; set; }
         internal string EffectName { get; set; }
         internal string EffectDetail { get; set; }
+        public static PolicyDefinition Parse(string content)
+        {
+            PolicyDefinition policyDefinition = new PolicyDefinition();
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement.GetProperty("properties");
+            if (!root.TryGetProperty("policyRule", out JsonElement ruleE))
+                throw new Exception("cannot find policyRule node");
+            policyDefinition.PolicyRule.If = ruleE.GetProperty("if").GetRawText();
+            policyDefinition.PolicyRule.Then = ruleE.GetProperty("then").GetRawText();
+
+            return policyDefinition;
+        }
     }
 }
