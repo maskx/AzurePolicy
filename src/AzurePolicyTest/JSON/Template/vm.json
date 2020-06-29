@@ -37,7 +37,8 @@
       "type": "string"
     },
     "virtualMachineName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "virtualMachineName1"
     },
     "virtualMachineRG": {
       "type": "string"

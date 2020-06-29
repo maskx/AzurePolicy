@@ -220,9 +220,11 @@ namespace maskx.AzurePolicy.Services
             }
             else if ("fullName".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
             {
-                if (root.TryGetProperty("name", out JsonElement nameE))
+                if (!root.TryGetProperty("name", out JsonElement nameE))
                     throw new Exception("cannot find 'name' property");
                 var name = this._ARMFunctions.Evaluate(nameE.GetString(), context).ToString();
+                if (string.IsNullOrEmpty(namePath))
+                    return name;
                 return $"{namePath}/{name}";
             }
             else if ("type".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))

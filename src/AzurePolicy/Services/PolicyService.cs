@@ -54,7 +54,7 @@ namespace maskx.AzurePolicy.Services
         /// </summary>
         public ValidationResult Validate(DeploymentContext deploymentContext)
         {
-            // TODO: replace this with ARMOrchestration's function
+            // TODO: replace this with ARMOrchestration's function:Template.Parse
             deploymentContext.Template = Parse(deploymentContext.TemplateContent);
 
             var scope = "";
@@ -99,10 +99,12 @@ namespace maskx.AzurePolicy.Services
             var deniedPolicyList = new List<PolicyDefinition>();
             if (resource.TryGetProperty("resources", out JsonElement resources))
             {
-                string n = namePath + "/" + this._ARMFunction.Evaluate(resource.GetProperty("name").GetString(),
+                string n = this._ARMFunction.Evaluate(resource.GetProperty("name").GetString(),
                     new Dictionary<string, object>() {
                         {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,deploymentContext }
-                    });
+                    }).ToString();
+                if (!string.IsNullOrEmpty(namePath))
+                    n = namePath + "/" + n;
                 foreach (var r in resources.EnumerateArray())
                 {
                     var deniedPolicy = Validate(policyDefinition, parameter, r, deploymentContext, n);

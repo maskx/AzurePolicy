@@ -39,5 +39,17 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.Single(rtv.DeniedPolicy);
         }
+        [Fact(DisplayName = "fullName")]
+        public void FullName()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "field",
+                ResourceGroup = "fullName",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
+            });
+            Assert.False(rtv.Result);
+            Assert.Single(rtv.DeniedPolicy);
+        }
     }
 }
