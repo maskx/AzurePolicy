@@ -1,0 +1,32 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2018-10-01",
+      "name": "VNet1",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            {
+              "value": "10.0.0.0/16"
+            },
+            {
+              "value": "20.0.0.0/16"
+            },
+            {
+              "value": "30.0.0.0/16"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
