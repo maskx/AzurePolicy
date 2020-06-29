@@ -123,19 +123,21 @@ namespace maskx.AzurePolicy.Services
             });
             this._Conditions.Add("contains", (left, right) =>
             {
-                return (left as JsonValue).Contains(right);
+                var list = (right as List<object>).Select(s => (string)s).ToList();
+                return (list.Contains(left.ToString()));
             });
             this._Conditions.Add("notcontains", (left, right) =>
             {
-                return !(left as JsonValue).Contains(right);
+                var list = (right as List<object>).Select(s => (string)s).ToList();
+                return !(list.Contains(left.ToString()));
             });
             this._Conditions.Add("in", (left, right) =>
             {
-                return (right as JsonValue).Contains(left);
+                return (left as JsonValue).Contains(right);
             });
             this._Conditions.Add("notin", (left, right) =>
             {
-                return !(right as JsonValue).Contains(left);
+                return !(left as JsonValue).Contains(right);
             });
             this._Conditions.Add("containskey", (left, right) =>
             {
