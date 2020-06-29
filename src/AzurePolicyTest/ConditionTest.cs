@@ -12,7 +12,6 @@ namespace AzurePolicyTest
         {
             this.fixture = fixture;
         }
-        // TODO: Add test code
         [Fact(DisplayName = "in")]
         public void In()
         {

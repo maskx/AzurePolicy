@@ -27,14 +27,26 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "CountWhere")]
         public void CountWhere()
         {
-            //var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
-            //{
-            //    SubscriptionId = "Count",
-            //    ResourceGroup = "Where",
-            //    TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
-            //});
-            //Assert.False(rtv.Result);
-            //Assert.Single(rtv.DeniedPolicy);
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "Count",
+                ResourceGroup = "Where",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+            });
+            Assert.False(rtv.Result);
+            Assert.Single(rtv.DeniedPolicy);
+        }
+        [Fact(DisplayName = "CountWhereWithChildProperty")]
+        public void CountWhereWithChildProperty()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "Count",
+                ResourceGroup = "WhereWithChildProperty",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/count_child_property")
+            });
+            Assert.False(rtv.Result);
+            Assert.Single(rtv.DeniedPolicy);
         }
     }
 }

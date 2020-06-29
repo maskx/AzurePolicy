@@ -163,15 +163,28 @@ namespace maskx.AzurePolicy.Services
                     var path = this._PolicyFunction.Evaluate(item.Value.GetString(), context).ToString();
                     if (context.TryGetValue(Functions.ContextKeys.COUNT_FIELD, out object countFiled))
                     {
+
                         path = path.Remove(0, countFiled.ToString().Length);
+                        if(path.StartsWith('.'))
+                        {
+                            path = path.Remove(0, 1);
+                        }
                         var paths = path.Split('.').ToList();
-                        right = ((JsonElement)context[Functions.ContextKeys.COUNT_ELEMENT]).GetElements(paths,
-                            _ARMFunctions,
-                            new Dictionary<string, object>() {
+                        if (string.IsNullOrEmpty(paths[0]))
+                        {
+                            right = context[Functions.ContextKeys.COUNT_ELEMENT];
+                        }
+                        else
+                        {
+                            using var doc = JsonDocument.Parse(context[Functions.ContextKeys.COUNT_ELEMENT].ToString());
+                            right = doc.RootElement.GetElements(paths,
+                                _ARMFunctions,
+                                new Dictionary<string, object>() {
                                 { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployCxt }
-                            });
-                        if (!path.Contains("[*]"))
-                            right = (right as IEnumerable<JsonElement>).First().GetEvaluatedValue(_ARMFunctions, context);
+                                });
+                            if (!path.Contains("[*]"))
+                                right = (right as List<object>).First();
+                        }
                     }
                     else
                     {
@@ -210,7 +223,7 @@ namespace maskx.AzurePolicy.Services
                 string fullType = GetFullType(deployDontext, namePath, root);
                 if (!fieldPath.StartsWith(fullType))
                     return -1;
-                var p = fieldPath.Remove(0, fullType.Length+1);
+                var p = fieldPath.Remove(0, fullType.Length + 1);
                 var r = root.GetProperty("properties").GetElements(p.Split('.').ToList(), _ARMFunctions, context);
                 if (p.Contains("[*]"))
                     return r;

@@ -1,0 +1,30 @@
+{
+  "properties": {
+    "displayName": "Allowed virtual machine size SKUs",
+    "policyType": "BuiltIn",
+    "mode": "Indexed",
+    "description": "This policy enables you to specify a set of virtual machine size SKUs that your organization can deploy.",
+    "metadata": {
+      "version": "1.0.1",
+      "category": "Compute"
+    },
+    "policyRule": {
+      "if": {
+        "count": {
+          "field": "Microsoft.Network/virtualNetworks/addressSpace.addressPrefixes[*]",
+          "where": {
+            "field": "Microsoft.Network/virtualNetworks/addressSpace.addressPrefixes[*]",
+            "notEquals": "30.0.0.0/16"
+          }
+        },
+        "equals": 2
+      },
+      "then": {
+        "effect": "deny"
+      }
+    }
+  },
+  "id": "/providers/Microsoft.Authorization/policyDefinitions/cccc23c7-8427-4f53-ad12-b6a63eb452b3",
+  "type": "Microsoft.Authorization/policyDefinitions",
+  "name": "cccc23c7-8427-4f53-ad12-b6a63eb452b3"
+}
