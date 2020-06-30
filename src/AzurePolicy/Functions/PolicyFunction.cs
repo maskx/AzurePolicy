@@ -125,6 +125,8 @@ namespace maskx.AzurePolicy.Functions
                     args.Result = s.Length;
                 else if (par1 is JsonValue jv)
                     args.Result = jv.Length;
+                else if (par1 is List<object> l)
+                    args.Result = l.Count;
             });
             Functions.Add("max", (args, cxt) =>
             {

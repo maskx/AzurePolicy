@@ -24,5 +24,17 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.Single(rtv.DeniedPolicy);
         }
+        [Fact(DisplayName = "fieldInLength")]
+        public void FieldInLength()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "Function",
+                ResourceGroup = "FieldInLength",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+            });
+            Assert.False(rtv.Result);
+            Assert.Single(rtv.DeniedPolicy);
+        }
     }
 }
