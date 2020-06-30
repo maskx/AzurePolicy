@@ -12,6 +12,17 @@ namespace AzurePolicyTest
         {
             this.fixture = fixture;
         }
-        
+        [Fact(DisplayName = "field")]
+        public void Field()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "Function",
+                ResourceGroup = "Field",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+            });
+            Assert.False(rtv.Result);
+            Assert.Single(rtv.DeniedPolicy);
+        }
     }
 }

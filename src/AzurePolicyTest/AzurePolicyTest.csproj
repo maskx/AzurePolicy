@@ -44,6 +44,9 @@
     <None Update="JSON\policy\Logical_allOf.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="JSON\policy\Function_Field.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="JSON\policy\Logical_not.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

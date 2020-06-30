@@ -226,7 +226,7 @@ namespace maskx.AzurePolicy.Services
                     }
                     else
                     {
-                        right = Field(path, policyCxt.Resource, deployCxt, policyCxt.NamePath);
+                        right = _PolicyFunction.Field(path, policyCxt.Resource, deployCxt, policyCxt.NamePath);
                     }
                 }
                 else if ("value".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
@@ -250,41 +250,7 @@ namespace maskx.AzurePolicy.Services
                 throw new Exception("cannot find conditions");
             return func(left, right);
         }
-        public object Field(string fieldPath, string resource, DeploymentContext deployDontext, string namePath = "")
-        {
-            using var doc = JsonDocument.Parse(resource);
-            var root = doc.RootElement;
-            var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployDontext } };
-
-            if (fieldPath.Contains('/'))//property aliases
-            {
-                string fullType = GetFullType(deployDontext, namePath, root);
-                if (!fieldPath.StartsWith(fullType))
-                    return -1;
-                var p = fieldPath.Remove(0, fullType.Length + 1);
-                var r = root.GetProperty("properties").GetElements(p.Split('.').ToList(), _ARMFunctions, context);
-                if (p.Contains("[*]"))
-                    return r;
-                return r.First();
-            }
-            else if ("fullName".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
-            {
-                if (!root.TryGetProperty("name", out JsonElement nameE))
-                    throw new Exception("cannot find 'name' property");
-                var name = this._ARMFunctions.Evaluate(nameE.GetString(), context).ToString();
-                if (string.IsNullOrEmpty(namePath))
-                    return name;
-                return $"{namePath}/{name}";
-            }
-            else if ("type".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
-            {
-                return GetFullType(deployDontext, namePath, root);
-            }
-            var e = root.GetElementDotWithoutException(fieldPath);
-            if (e.IsEqual(default))
-                return null;
-            return e.GetEvaluatedValue(_ARMFunctions, context);
-        }
+       
 
         public int Count(JsonElement element, Dictionary<string, object> context, string namePath = "")
         {
@@ -293,7 +259,7 @@ namespace maskx.AzurePolicy.Services
             var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentContext;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
             var path = this._PolicyFunction.Evaluate(fieldE.GetString(), context).ToString();
-            if (!(Field(path, policyCxt.Resource, deployCxt, namePath) is List<object> d))
+            if (!(_PolicyFunction.Field(path, policyCxt.Resource, deployCxt, namePath) is List<object> d))
                 return 0;
             if (element.TryGetProperty("where", out JsonElement whereE))
             {
@@ -311,51 +277,6 @@ namespace maskx.AzurePolicy.Services
             }
 
             return d.Count();
-        }
-        private string GetFullType(DeploymentContext context, string namePath, JsonElement root)
-        {
-            if (!root.TryGetProperty("type", out JsonElement typeE))
-                throw new Exception("cannot find 'type' property");
-            var type = this._ARMFunctions.Evaluate(typeE.GetString(), new Dictionary<string, object>()
-                {
-                    {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
-
-                }).ToString();
-            if (string.IsNullOrEmpty(namePath))
-                return type;
-            string fulltype = GetParentType(context.TemplateContent, namePath.Split('/'), new Dictionary<string, object>()
-                {
-                    { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
-
-                });
-            return $"{fulltype}/{type}";
-        }
-
-        private string GetParentType(string template, string[] path, Dictionary<string, object> context)
-        {
-            List<string> types = new List<string>();
-            using var doc = JsonDocument.Parse(template);
-            JsonElement element = doc.RootElement.GetProperty("resources");
-            foreach (var p in path)
-            {
-                foreach (var r in element.EnumerateArray())
-                {
-                    if (p == this._ARMFunctions.Evaluate(r.GetProperty("name").GetString(), context).ToString())
-                    {
-                        types.Add(this._ARMFunctions.Evaluate(r.GetProperty("type").GetString(), context).ToString());
-                        element = r.GetProperty("resources");
-                        break;
-                    }
-
-                }
-            }
-            return string.Join('/', types);
-
-        }
-
-        private bool Match(string left,string right)
-        {
-            return false;
         }
     }
 }
