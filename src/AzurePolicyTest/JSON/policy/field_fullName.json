@@ -11,7 +11,7 @@
     "policyRule": {
       "if": {
         "field": "fullName",
-        "Equals": "VNet1/Subnet1"
+        "equals": "VNet1/Subnet1"
       },
       "then": {
         "effect": "deny"

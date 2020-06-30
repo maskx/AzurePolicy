@@ -1,0 +1,25 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string"
+    }
+  },
+ 
+      "resources": [
+        {
+          "type": "subnets",
+          "apiVersion": "2018-10-01",
+          "name": "Subnet1",
+          "location": "[parameters('location')]",
+          "dependsOn": [
+            "VNet1"
+          ],
+          "properties": {
+            "addressPrefix": "10.0.0.0/24"
+          }
+        }
+      ]
+ 
+}

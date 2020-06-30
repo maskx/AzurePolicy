@@ -10,16 +10,8 @@
     },
     "policyRule": {
       "if": {
-        "anyOf": [
-          {
-            "field": "type",
-            "equals": "Microsoft.Compute/virtualMachines123"
-          },
-          {
-            "field": "name",
-            "equals": "virtualMachineName1"
-          }
-        ]
+        "field": "apiVersion",
+        "greaterOrEquals": "2019-01-01"
       },
       "then": {
         "effect": "deny"

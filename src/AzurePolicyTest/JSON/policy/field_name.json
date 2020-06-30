@@ -11,7 +11,7 @@
     "policyRule": {
       "if": {
         "field": "name",
-        "Equals": "networkInterfaceName1"
+        "equals": "networkInterfaceName1"
       },
       "then": {
         "effect": "deny"
