@@ -36,5 +36,17 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.Single(rtv.DeniedPolicy);
         }
+        [Fact(DisplayName = "addDays")]
+        public void AddDays()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "Function",
+                ResourceGroup = "addDays",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+            });
+            Assert.False(rtv.Result);
+            Assert.Single(rtv.DeniedPolicy);
+        }
     }
 }

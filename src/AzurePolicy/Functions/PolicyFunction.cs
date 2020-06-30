@@ -5,6 +5,7 @@ using maskx.AzurePolicy.Services;
 using maskx.Expression;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -533,7 +534,7 @@ namespace maskx.AzurePolicy.Functions
                 }
                 else
                 {
-                    args.Result = DateTime.UtcNow.ToString("yyyyMMdd'T'HHmmss'Z'");
+                    args.Result = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
                 }
             });
 
@@ -644,6 +645,13 @@ namespace maskx.AzurePolicy.Functions
                 var par = args.EvaluateParameters(cxt);
                 args.Result = Field(par[0].ToString(), policyCxt.Resource, depolyCxt);
             });
+            Functions.Add("adddays", (args, cxt) =>
+            {
+                var pars = args.EvaluateParameters(cxt);
+                DateTime dateTime = DateTime.ParseExact(pars[0].ToString(), "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture);
+                int numberOfDaysToAdd = (int)pars[1];
+                args.Result = dateTime.AddDays(numberOfDaysToAdd).ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture);
+            });
             #endregion
         }
         public object Evaluate(string function, Dictionary<string, object> context)
@@ -675,13 +683,13 @@ namespace maskx.AzurePolicy.Functions
             var root = doc.RootElement;
             var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployDontext } };
             int index = fieldPath.LastIndexOf('/');
-            if (index>0)//property aliases
+            if (index > 0)//property aliases
             {
                 string fullType = GetFullType(deployDontext, namePath, root);
                 string type = fieldPath.Substring(0, index);
-                if (!string.Equals(fullType,type,StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(fullType, type, StringComparison.OrdinalIgnoreCase))
                     return -1;
-                var p = fieldPath.Remove(0,index+1);
+                var p = fieldPath.Remove(0, index + 1);
                 var r = root.GetProperty("properties").GetElements(p.Split('.').ToList(), _ARMFunctions, context);
                 if (p.Contains("[*]"))
                     return r;
