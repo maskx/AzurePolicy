@@ -5,6 +5,7 @@ using maskx.AzurePolicy.Services;
 using maskx.Expression;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -125,6 +126,8 @@ namespace maskx.AzurePolicy.Functions
                     args.Result = s.Length;
                 else if (par1 is JsonValue jv)
                     args.Result = jv.Length;
+                else if (par1 is List<object> l)
+                    args.Result = l.Count;
             });
             Functions.Add("max", (args, cxt) =>
             {
@@ -531,7 +534,7 @@ namespace maskx.AzurePolicy.Functions
                 }
                 else
                 {
-                    args.Result = DateTime.UtcNow.ToString("yyyyMMdd'T'HHmmss'Z'");
+                    args.Result = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
                 }
             });
 
@@ -583,7 +586,7 @@ namespace maskx.AzurePolicy.Functions
             Functions.Add("parameters", (args, cxt) =>
             {
                 var par1 = args.Parameters[0].Evaluate(cxt).ToString();
-                if(cxt.TryGetValue(ContextKeys.INITIATIVE_PARAMERTERS, out object initiative))
+                if (cxt.TryGetValue(ContextKeys.INITIATIVE_PARAMERTERS, out object initiative))
                 {
                     using var jsonDoc = JsonDocument.Parse(initiative.ToString());
                     if (jsonDoc.RootElement.TryGetProperty(par1, out JsonElement ele))
@@ -597,7 +600,7 @@ namespace maskx.AzurePolicy.Functions
                 else if (cxt.TryGetValue(ContextKeys.POLICY_CONTEXT, out object policyContext))
                 {
                     var policyCxt = policyContext as PolicyContext;
-                    if(!string.IsNullOrEmpty(policyCxt.Parameters))
+                    if (!string.IsNullOrEmpty(policyCxt.Parameters))
                     {
                         using var jsonDoc = JsonDocument.Parse(policyCxt.Parameters);
                         if (!jsonDoc.RootElement.TryGetProperty(par1, out JsonElement ele))
@@ -622,7 +625,7 @@ namespace maskx.AzurePolicy.Functions
                             args.Result = JsonValue.GetElementValue(defValue);
                         }
                     }
-                    
+
                 }
                 if (args.Result is string s)
                     args.Result = Evaluate(s, cxt);
@@ -633,9 +636,21 @@ namespace maskx.AzurePolicy.Functions
                 {
                     throw new Exception("can not find Policy Context");
                 }
+                if (!cxt.TryGetValue(ContextKeys.DEPLOY_CONTEXT, out object depolyContext))
+                {
+                    throw new Exception("can not find Policy Context");
+                }
+                var policyCxt = poliyContext as PolicyContext;
+                var depolyCxt = depolyContext as DeploymentContext;
                 var par = args.EvaluateParameters(cxt);
-                using var doc = JsonDocument.Parse((poliyContext as PolicyContext).Resource);
-
+                args.Result = Field(par[0].ToString(), policyCxt.Resource, depolyCxt);
+            });
+            Functions.Add("adddays", (args, cxt) =>
+            {
+                var pars = args.EvaluateParameters(cxt);
+                DateTime dateTime = DateTime.ParseExact(pars[0].ToString(), "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture);
+                int numberOfDaysToAdd = (int)pars[1];
+                args.Result = dateTime.AddDays(numberOfDaysToAdd).ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture);
             });
             #endregion
         }
@@ -661,36 +676,83 @@ namespace maskx.AzurePolicy.Functions
             }
             return function;
         }
-        public string Field(string name, Dictionary<string, object> context)
+
+        public object Field(string fieldPath, string resource, DeploymentContext deployDontext, string namePath = "")
         {
-            if (!context.TryGetValue(ContextKeys.POLICY_CONTEXT, out object policyContext))
-                throw new Exception("cannot find policy context");
-            if (!context.TryGetValue(ContextKeys.DEPLOY_CONTEXT, out object depolyContext))
-                throw new Exception("cannot find deploy context");
-            var resourceStr = (policyContext as PolicyContext).Resource;
-            if (string.IsNullOrEmpty(resourceStr))
-                throw new Exception("resource cannot be null");
-            using var doc = JsonDocument.Parse(resourceStr);
+            using var doc = JsonDocument.Parse(resource);
             var root = doc.RootElement;
-            var pars = this.Evaluate(name, context).ToString().Split('/');
-            var templateDoc = JsonDocument.Parse((depolyContext as DeploymentContext).SubscriptionId);
-            if (pars.Length > 1)
-            { 
-
-            }
-            if (pars.Length == 1)
+            var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployDontext } };
+            int index = fieldPath.LastIndexOf('/');
+            if (index > 0)//property aliases
             {
-                if (name.Equals("fullName", StringComparison.OrdinalIgnoreCase))
-                {// TODO: wait for update ARMOrchestration
-                   
-                    return string.Empty;
-                }
-                var ele = root.GetElementDot(pars[0]);
-                return this._ARMFunctions.Evaluate(ele.GetString(), context).ToString();
-
+                string fullType = GetFullType(deployDontext, namePath, root);
+                string type = fieldPath.Substring(0, index);
+                if (!string.Equals(fullType, type, StringComparison.OrdinalIgnoreCase))
+                    return -1;
+                var p = fieldPath.Remove(0, index + 1);
+                var r = root.GetProperty("properties").GetElements(p.Split('.').ToList(), _ARMFunctions, context);
+                if (p.Contains("[*]"))
+                    return r;
+                return r.First();
             }
+            else if ("fullName".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
+            {
+                if (!root.TryGetProperty("name", out JsonElement nameE))
+                    throw new Exception("cannot find 'name' property");
+                var name = this._ARMFunctions.Evaluate(nameE.GetString(), context).ToString();
+                if (string.IsNullOrEmpty(namePath))
+                    return name;
+                return $"{namePath}/{name}";
+            }
+            else if ("type".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return GetFullType(deployDontext, namePath, root);
+            }
+            var e = root.GetElementDotWithoutException(fieldPath);
+            if (e.IsEqual(default))
+                return null;
+            return e.GetEvaluatedValue(_ARMFunctions, context);
+        }
 
-            return null;
+        private string GetFullType(DeploymentContext context, string namePath, JsonElement root)
+        {
+            if (!root.TryGetProperty("type", out JsonElement typeE))
+                throw new Exception("cannot find 'type' property");
+            var type = this._ARMFunctions.Evaluate(typeE.GetString(), new Dictionary<string, object>()
+                {
+                    {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
+
+                }).ToString();
+            if (string.IsNullOrEmpty(namePath))
+                return type;
+            string fulltype = GetParentType(context.TemplateContent, namePath.Split('/'), new Dictionary<string, object>()
+                {
+                    { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
+
+                });
+            return $"{fulltype}/{type}";
+        }
+
+        private string GetParentType(string template, string[] path, Dictionary<string, object> context)
+        {
+            List<string> types = new List<string>();
+            using var doc = JsonDocument.Parse(template);
+            JsonElement element = doc.RootElement.GetProperty("resources");
+            foreach (var p in path)
+            {
+                foreach (var r in element.EnumerateArray())
+                {
+                    if (p == this._ARMFunctions.Evaluate(r.GetProperty("name").GetString(), context).ToString())
+                    {
+                        types.Add(this._ARMFunctions.Evaluate(r.GetProperty("type").GetString(), context).ToString());
+                        element = r.GetProperty("resources");
+                        break;
+                    }
+
+                }
+            }
+            return string.Join('/', types);
+
         }
     }
 }

@@ -22,17 +22,21 @@ namespace maskx.AzurePolicy.Services
         private void InitBuiltInEffects()
         {
             this._EffectPriority.Add(DisabledEffectName, 0);
-            this._EffectPriority.Add(DenyEffectName, 100);
+            this._EffectPriority.Add(DenyEffectName, 200);
+            this._Effects.Add("append", (detail, context) =>
+            {
+                return "";
+            });
         }
         public void SetEffect(string name, Func<string, Dictionary<string, object>, string> func)
         {
             this._Effects[name] = func;
         }
-        public string Run(string name,string detail, Dictionary<string, object> context)
+        public string Run(string name, string detail, Dictionary<string, object> context)
         {
             if (!this._Effects.TryGetValue(name, out Func<string, Dictionary<string, object>, string> func))
                 throw new Exception($"cannot find an effect named '{name}'");
-            return func(detail,context);
+            return func(detail, context);
         }
         public int ParseEffect(PolicyDefinition policyDefinition, Dictionary<string, object> context)
         {

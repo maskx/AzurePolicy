@@ -40,8 +40,8 @@ namespace maskx.AzurePolicy.Services
                 {
                     return true;
                 }
-                var s = right.ToString().Split('*');
-                var r = left.ToString();
+                var s = left.ToString().Split('*');
+                var r = right.ToString();
                 if (s.Length < 2)
                 {
                     throw new Exception("value field not contains *");
@@ -69,8 +69,8 @@ namespace maskx.AzurePolicy.Services
                 {
                     return false;
                 }
-                var s = right.ToString().Split('*');
-                var r = left.ToString();
+                var s = left.ToString().Split('*');
+                var r = right.ToString();
                 if (s.Length < 2)
                 {
                     throw new Exception("value field not contains *");
@@ -123,22 +123,21 @@ namespace maskx.AzurePolicy.Services
             });
             this._Conditions.Add("contains", (left, right) =>
             {
-                var list = (left as List<object>).Select(s => (string)s).ToList();
-                return (list.Contains(right.ToString()));
+                var list = (right as List<object>).Select(s => (string)s).ToList();
+                return (list.Contains(left.ToString()));
             });
             this._Conditions.Add("notcontains", (left, right) =>
             {
-                var list = (left as List<object>).Select(s => (string)s).ToList();
-                return !(list.Contains(right.ToString()));
-
+                var list = (right as List<object>).Select(s => (string)s).ToList();
+                return !(list.Contains(left.ToString()));
             });
             this._Conditions.Add("in", (left, right) =>
             {
-                return (right as JsonValue).Contains(left);
+                return (left as JsonValue).Contains(right);
             });
             this._Conditions.Add("notin", (left, right) =>
             {
-                return !(right as JsonValue).Contains(left);
+                return !(left as JsonValue).Contains(right);
             });
             this._Conditions.Add("containskey", (left, right) =>
             {
@@ -192,20 +191,6 @@ namespace maskx.AzurePolicy.Services
         }
         public bool Evaluate(JsonElement element, Dictionary<string, object> context)
         {
-            #region note
-            //left is field calculated result;right is the value of input for condition. eg: 
-            /*
-             *  "policyRule": {
-                   "if": {
-                              "field": "Microsoft.Network/virtualNetworks/addressSpace.addressPrefixes[*]",
-                              "notContains": "10.0.0.0/16"
-                          },
-                   "then": {
-                              "effect": "deny"
-                            }
-                 }
-             */
-            #endregion
             object left = null;
             object right = null;
             Func<object, object, bool> func = null;
@@ -227,28 +212,28 @@ namespace maskx.AzurePolicy.Services
                         var paths = path.Split('.').ToList();
                         if (string.IsNullOrEmpty(paths[0]))
                         {
-                            left = context[Functions.ContextKeys.COUNT_ELEMENT];
+                            right = context[Functions.ContextKeys.COUNT_ELEMENT];
                         }
                         else
                         {
                             using var doc = JsonDocument.Parse(context[Functions.ContextKeys.COUNT_ELEMENT].ToString());
-                            left = doc.RootElement.GetElements(paths,
+                            right = doc.RootElement.GetElements(paths,
                                 _ARMFunctions,
                                 new Dictionary<string, object>() {
                                 { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployCxt }
                                 });
                             if (!path.Contains("[*]"))
-                                left = (left as List<object>).First();
+                                right = (right as List<object>).First();
                         }
                     }
                     else
                     {
-                        left = Field(path, policyCxt.Resource, deployCxt, policyCxt.NamePath);
+                        right = _PolicyFunction.Field(path, policyCxt.Resource, deployCxt, policyCxt.NamePath);
                     }
                 }
                 else if ("value".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    left = this._PolicyFunction.Evaluate(item.Value.GetString(), context);
+                    right = this._PolicyFunction.Evaluate(item.Value.GetString(), context);
                 }
                 else if ("count".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
                 {
@@ -256,52 +241,18 @@ namespace maskx.AzurePolicy.Services
                     if (r == -1)// https://docs.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#count
                         return false;
                     else
-                        left = r;
+                        right = r;
                 }
                 else if (_Conditions.TryGetValue(item.Name.ToLower(), out func))
                 {
-                    right = item.Value.GetEvaluatedValue(_ARMFunctions, context);
+                    left = item.Value.GetEvaluatedValue(_ARMFunctions, context);
                 }
             }
             if (func == null)
                 throw new Exception("cannot find conditions");
             return func(left, right);
         }
-        public object Field(string fieldPath, string resource, DeploymentContext deployDontext, string namePath = "")
-        {
-            using var doc = JsonDocument.Parse(resource);
-            var root = doc.RootElement;
-            var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployDontext } };
-
-            if (fieldPath.Contains('/'))//property aliases
-            {
-                string fullType = GetFullType(deployDontext, namePath, root);
-                if (!fieldPath.StartsWith(fullType))
-                    return -1;
-                var p = fieldPath.Remove(0, fullType.Length + 1);
-                var r = root.GetProperty("properties").GetElements(p.Split('.').ToList(), _ARMFunctions, context);
-                if (p.Contains("[*]"))
-                    return r;
-                return r.First();
-            }
-            else if ("fullName".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
-            {
-                if (!root.TryGetProperty("name", out JsonElement nameE))
-                    throw new Exception("cannot find 'name' property");
-                var name = this._ARMFunctions.Evaluate(nameE.GetString(), context).ToString();
-                if (string.IsNullOrEmpty(namePath))
-                    return name;
-                return $"{namePath}/{name}";
-            }
-            else if ("type".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
-            {
-                return GetFullType(deployDontext, namePath, root);
-            }
-            var e = root.GetElementDotWithoutException(fieldPath);
-            if (e.IsEqual(default))
-                return null;
-            return e.GetEvaluatedValue(_ARMFunctions, context);
-        }
+       
 
         public int Count(JsonElement element, Dictionary<string, object> context, string namePath = "")
         {
@@ -310,7 +261,7 @@ namespace maskx.AzurePolicy.Services
             var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentContext;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
             var path = this._PolicyFunction.Evaluate(fieldE.GetString(), context).ToString();
-            if (!(Field(path, policyCxt.Resource, deployCxt, namePath) is List<object> d))
+            if (!(_PolicyFunction.Field(path, policyCxt.Resource, deployCxt, namePath) is List<object> d))
                 return 0;
             if (element.TryGetProperty("where", out JsonElement whereE))
             {
@@ -328,51 +279,6 @@ namespace maskx.AzurePolicy.Services
             }
 
             return d.Count();
-        }
-        private string GetFullType(DeploymentContext context, string namePath, JsonElement root)
-        {
-            if (!root.TryGetProperty("type", out JsonElement typeE))
-                throw new Exception("cannot find 'type' property");
-            var type = this._ARMFunctions.Evaluate(typeE.GetString(), new Dictionary<string, object>()
-                {
-                    {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
-
-                }).ToString();
-            if (string.IsNullOrEmpty(namePath))
-                return type;
-            string fulltype = GetParentType(context.TemplateContent, namePath.Split('/'), new Dictionary<string, object>()
-                {
-                    { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
-
-                });
-            return $"{fulltype}/{type}";
-        }
-
-        private string GetParentType(string template, string[] path, Dictionary<string, object> context)
-        {
-            List<string> types = new List<string>();
-            using var doc = JsonDocument.Parse(template);
-            JsonElement element = doc.RootElement.GetProperty("resources");
-            foreach (var p in path)
-            {
-                foreach (var r in element.EnumerateArray())
-                {
-                    if (p == this._ARMFunctions.Evaluate(r.GetProperty("name").GetString(), context).ToString())
-                    {
-                        types.Add(this._ARMFunctions.Evaluate(r.GetProperty("type").GetString(), context).ToString());
-                        element = r.GetProperty("resources");
-                        break;
-                    }
-
-                }
-            }
-            return string.Join('/', types);
-
-        }
-
-        private bool Match(string left,string right)
-        {
-            return false;
         }
     }
 }
