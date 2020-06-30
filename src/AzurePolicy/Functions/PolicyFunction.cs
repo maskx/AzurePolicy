@@ -672,13 +672,14 @@ namespace maskx.AzurePolicy.Functions
             using var doc = JsonDocument.Parse(resource);
             var root = doc.RootElement;
             var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployDontext } };
-
-            if (fieldPath.Contains('/'))//property aliases
+            int index = fieldPath.LastIndexOf('/');
+            if (index>0)//property aliases
             {
                 string fullType = GetFullType(deployDontext, namePath, root);
-                if (!fieldPath.StartsWith(fullType))
+                string type = fieldPath.Substring(0, index);
+                if (!string.Equals(fullType,type,StringComparison.OrdinalIgnoreCase))
                     return -1;
-                var p = fieldPath.Remove(0, fullType.Length + 1);
+                var p = fieldPath.Remove(0,index+1);
                 var r = root.GetProperty("properties").GetElements(p.Split('.').ToList(), _ARMFunctions, context);
                 if (p.Contains("[*]"))
                     return r;
