@@ -36,5 +36,30 @@ namespace AzurePolicyTest
             Assert.True(rtv.Result);
             Assert.Empty(rtv.DeniedPolicy);
         }
+        [Fact(DisplayName = "notContains")]
+        public void NotContains()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "Condition",
+                ResourceGroup = "NotContains",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+            });
+            Assert.True(rtv.Result);
+            Assert.Empty(rtv.DeniedPolicy);
+        }
+        [Fact(DisplayName = "contains")]
+        public void Contains()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "Condition",
+                ResourceGroup = "Contains",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+            });
+            Assert.False(rtv.Result);
+            Assert.Equal(1, rtv.DeniedPolicy.Count);
+        }
+      
     }
 }
