@@ -33,11 +33,7 @@ namespace AzurePolicyTest
             workerHost.RunAsync();
             this.ServiceProvider = workerHost.Services;
             this.PolicyService = this.ServiceProvider.GetService<PolicyService>();
-            var effect= this.ServiceProvider.GetService<Effect>();
-            effect.SetEffect("ForTesting", (detail, context) =>
-            {
-                return (context[maskx.ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT] as DeploymentContext).TemplateContent;
-            });
+
         }
     }
     [CollectionDefinition("WebHost PolicyService")]

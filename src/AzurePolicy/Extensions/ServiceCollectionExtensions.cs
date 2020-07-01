@@ -1,6 +1,7 @@
 ﻿using maskx.AzurePolicy.Functions;
 using maskx.AzurePolicy.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace maskx.AzurePolicy.Extensions
 {
@@ -11,7 +12,7 @@ namespace maskx.AzurePolicy.Extensions
             services.AddSingleton<Effect>();
             services.AddSingleton<Condition>();
             services.AddSingleton<Logical>();
-            services.AddSingleton<ARMOrchestration.Functions.ARMFunctions>();
+            services.TryAddSingleton<ARMOrchestration.Functions.ARMFunctions>();
             services.AddSingleton<PolicyFunction>();
             services.AddSingleton<PolicyService>();
             return services;

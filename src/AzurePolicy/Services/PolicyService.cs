@@ -124,7 +124,7 @@ namespace maskx.AzurePolicy.Services
                     deniedPolicyList.Add(policyDefinition);
                 else
                 {
-                    deploymentContext.TemplateContent = this._Effect.Run(policyContext,deploymentContext);
+                    this._Effect.Run(policyContext,deploymentContext);
                 }
             }
             return deniedPolicyList;
@@ -135,14 +135,15 @@ namespace maskx.AzurePolicy.Services
         /// </summary>
         public void Remedy(string scope)
         {
-
+            // question? deny effect should remove the resource?
         }
         /// <summary>
         /// a task to generate a compliance report
         /// </summary>
         public void Audit(string scope)
         {
-
+            // deny effect should report an non-compliant
+            // https://docs.microsoft.com/en-us/azure/governance/policy/concepts/effects#layering-policy-definitions
         }
 
     }

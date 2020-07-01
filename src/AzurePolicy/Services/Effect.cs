@@ -1,9 +1,11 @@
 ﻿using maskx.ARMOrchestration.Orchestrations;
 using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Functions;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 
 namespace maskx.AzurePolicy.Services
@@ -13,7 +15,7 @@ namespace maskx.AzurePolicy.Services
         public const string DisabledEffectName = "disabled";
         public const string DenyEffectName = "deny";
         public const int DefaultPriority = 100;
-        private readonly Dictionary<string, Func<string, Dictionary<string, object>, string>> _Effects = new Dictionary<string, Func<string, Dictionary<string, object>, string>>();
+        private readonly Dictionary<string, Action<string, Dictionary<string, object>>> _Effects = new Dictionary<string, Action<string, Dictionary<string, object>>>();
         private readonly Dictionary<string, int> _EffectPriority = new Dictionary<string, int>();
         private readonly PolicyFunction _PolicyFunction;
         public Effect(PolicyFunction policyFunction)
@@ -26,6 +28,7 @@ namespace maskx.AzurePolicy.Services
             this._EffectPriority.Add(DisabledEffectName, 0);
             this._EffectPriority.Add(DenyEffectName, 200);
             //  use modify effect insteade append effect
+            // https://docs.microsoft.com/en-us/azure/governance/policy/concepts/effects#modify
             this._Effects.Add("modify", (detail, context) =>
             {
                 var deployCxt = context[ContextKeys.DEPLOY_CONTEXT] as DeploymentContext;
@@ -54,20 +57,39 @@ namespace maskx.AzurePolicy.Services
                 }
                 var template = JObject.Parse(deployCxt.TemplateContent);
                 string resourceName = resource["Name"].ToString();
-                foreach (var item in (template["resources"] as JArray))
+                var r = GetResourceByPath(template["resources"] as JArray, policyCxt.NamePath.Split('/'));
+                r = resource;
+            });
+            // TODO: DeployIfNotExists Effect 
+            // https://docs.microsoft.com/en-us/azure/governance/policy/concepts/effects#deployifnotexists
+            this._Effects.Add("DeployIfNotExists", (detail, context) =>
+            {
+                
+            });
+        }
+        private JObject GetResourceByPath(JArray jarray, string[] path)
+        {
+            JToken rtv = null;
+            JArray children = jarray;
+            foreach (var p in path)
+            {
+                foreach (var child in children)
                 {
-                    if (item["name"].ToString() == resourceName)
+                    if (child["name"].ToString() == p)
                     {
+                        rtv = child;
+                        children = rtv["resources"] as JArray;
                         break;
                     }
                 }
-                return "";
-            });
+            }
+            return rtv as JObject;
+
+
         }
         // TODO: ModifyAddOperation
         private void ModifyAddOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
         {
-
             var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
             var value = operation.GetProperty("value").GetRawText();
             field = field.Remove(0, field.LastIndexOf('/') + 1);
@@ -90,17 +112,18 @@ namespace maskx.AzurePolicy.Services
         // ModifyRemoveOperation
         private void ModifyRemoveOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
         {
+            var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
 
         }
-        public void SetEffect(string name, Func<string, Dictionary<string, object>, string> func)
+        public void SetEffect(string name, Action<string, Dictionary<string, object>> func)
         {
             this._Effects[name] = func;
         }
-        public string Run(PolicyContext policyContext, DeploymentContext deploymentContext)
+        public void Run(PolicyContext policyContext, DeploymentContext deploymentContext)
         {
-            if (!this._Effects.TryGetValue(policyContext.PolicyDefinition.EffectName, out Func<string, Dictionary<string, object>, string> func))
+            if (!this._Effects.TryGetValue(policyContext.PolicyDefinition.EffectName, out Action<string, Dictionary<string, object>> func))
                 throw new Exception($"cannot find an effect named '{policyContext.PolicyDefinition.EffectName}'");
-            return func(policyContext.PolicyDefinition.EffectDetail,
+            func(policyContext.PolicyDefinition.EffectDetail,
                 new Dictionary<string, object>() {
                     { ContextKeys.POLICY_CONTEXT,policyContext},
                     {ContextKeys.DEPLOY_CONTEXT,deploymentContext }
