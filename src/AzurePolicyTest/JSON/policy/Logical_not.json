@@ -12,7 +12,7 @@
       "if": {
         "not": {
           "field": "type",
-          "notequals": "Microsoft.Compute/virtualMachines"
+          "notEquals": "Microsoft.Compute/virtualMachines"
         }
       },
       "then": {

@@ -17,7 +17,7 @@
           },
           {
             "field": "name",
-            "Equals": "virtualMachineName1"
+            "equals": "virtualMachineName1"
           }
         ]
       },
