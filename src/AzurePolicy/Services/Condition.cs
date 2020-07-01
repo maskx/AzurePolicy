@@ -9,6 +9,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
+using System.Globalization;
 
 namespace maskx.AzurePolicy.Services
 {
@@ -113,14 +114,11 @@ namespace maskx.AzurePolicy.Services
             });
             this._Conditions.Add("contains", (left, right) =>
             {
-                var list = (left as List<object>).Select(s => (string)s).ToList();
-                return (list.Contains(right.ToString()));
+                return (left as List<object>).Contains(right);
             });
             this._Conditions.Add("notContains", (left, right) =>
             {
-                var list = (left as List<object>).Select(s => (string)s).ToList();
-                return !(list.Contains(right.ToString()));
-
+                return !((left as List<object>).Contains(right));
             });
             this._Conditions.Add("in", (left, right) =>
             {
@@ -132,17 +130,11 @@ namespace maskx.AzurePolicy.Services
             });
             this._Conditions.Add("containsKey", (left, right) =>
             {
-                var s = left.ToString().Split('*');
-                var r = right.ToString();
-                // TODO: containsKey
-                return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+                return (left as JsonValue).Contains(right);
             });
             this._Conditions.Add("notContainsKey", (left, right) =>
             {
-                var s = left.ToString().Split('*');
-                var r = right.ToString();
-                // TODO: notContainsKey
-                return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+                return !(left as JsonValue).Contains(right);
             });
             this._Conditions.Add("less", (left, right) =>
             {
@@ -162,10 +154,21 @@ namespace maskx.AzurePolicy.Services
             });
             this._Conditions.Add("exists", (left, right) =>
             {
-                var s = left.ToString().Split('*');
-                var r = right.ToString();
-                // TODO: exists
-                return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+                var leftResult = (left!=null)&&((int)left!=-1);
+                var rightResult = false;
+                switch (right.ToString().ToLower())
+                {
+                    case "true" :
+                        rightResult = true;
+                        break;
+                    case "false":
+                        rightResult = false;
+                        break;
+                    default:
+                        throw new Exception("input is not a valid bool string");
+
+                }
+                return (leftResult == rightResult);
             });
         }
         public bool Evaluate(JsonElement element, Dictionary<string, object> context)
@@ -328,8 +331,8 @@ namespace maskx.AzurePolicy.Services
             DateTime leftTime = new DateTime();
             DateTime rightTime = new DateTime();
 
-            leftParse=DateTime.TryParse(left, out leftTime);
-            rightParse = DateTime.TryParse(right, out rightTime);
+            leftParse=DateTime.TryParseExact(left, "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture,DateTimeStyles.None,out leftTime);
+            rightParse = DateTime.TryParseExact(right, "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture, DateTimeStyles.None, out rightTime);
             if(((leftParse==false)&&(rightParse==true))|| ((leftParse==true) && (rightParse==false)))
             {
                 throw new Exception($"field and input of condition can not both parse to datetime,field:{left},input:{right}");

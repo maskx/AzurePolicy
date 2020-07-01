@@ -206,6 +206,41 @@ namespace AzurePolicyTest
             Assert.True(rtv.Result);
             Assert.Empty(rtv.DeniedPolicy);
         }
-
+        [Fact(DisplayName = "containsKey")]
+        public void ContainsKey()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "Condition",
+                ResourceGroup = "containsKey",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+            });
+            Assert.False(rtv.Result);
+            Assert.Single(rtv.DeniedPolicy);
+        }
+        [Fact(DisplayName = "notContainsKey")]
+        public void NotContainsKey()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "Condition",
+                ResourceGroup = "notContainsKey",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+            });
+            Assert.True(rtv.Result);
+            Assert.Empty(rtv.DeniedPolicy);
+        }
+        [Fact(DisplayName = "exists")]
+        public void Exists()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            {
+                SubscriptionId = "Condition",
+                ResourceGroup = "exists",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+            });
+            Assert.False(rtv.Result);
+            Assert.Single(rtv.DeniedPolicy);
+        }
     }
 }
