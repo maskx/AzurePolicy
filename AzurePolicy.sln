@@ -5,7 +5,12 @@ VisualStudioVersion = 16.0.30128.36
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzurePolicy", "src\AzurePolicy\AzurePolicy.csproj", "{06A27F27-5EEC-40AF-885F-94A556CEE890}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzurePolicyTest", "src\AzurePolicyTest\AzurePolicyTest.csproj", "{D213105B-7E0A-4E9F-96E7-E623EE22751B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzurePolicyTest", "src\AzurePolicyTest\AzurePolicyTest.csproj", "{D213105B-7E0A-4E9F-96E7-E623EE22751B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Doc", "Doc", "{A85ED644-3E88-4A3C-B327-5A2F26071D37}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

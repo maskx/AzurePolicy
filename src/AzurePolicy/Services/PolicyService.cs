@@ -111,19 +111,20 @@ namespace maskx.AzurePolicy.Services
                     deniedPolicyList.AddRange(deniedPolicy);
                 }
             }
-            if (_Logical.Evaluate(new PolicyContext()
+            var policyContext = new PolicyContext()
             {
                 PolicyDefinition = policyDefinition,
                 Parameters = parameter,
                 Resource = resource.GetRawText(),
                 NamePath = namePath
-            }, deploymentContext))
+            };
+            if (_Logical.Evaluate(policyContext, deploymentContext))
             {
                 if (string.Equals(policyDefinition.EffectName, Effect.DenyEffectName, StringComparison.OrdinalIgnoreCase))
                     deniedPolicyList.Add(policyDefinition);
                 else
                 {
-                    deploymentContext.TemplateContent = this._Effect.Run(policyDefinition.EffectName, policyDefinition.EffectDetail, new Dictionary<string, object>() { });
+                    deploymentContext.TemplateContent = this._Effect.Run(policyContext,deploymentContext);
                 }
             }
             return deniedPolicyList;

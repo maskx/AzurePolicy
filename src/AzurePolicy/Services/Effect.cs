@@ -1,5 +1,7 @@
-﻿using maskx.AzurePolicy.Definitions;
+﻿using maskx.ARMOrchestration.Orchestrations;
+using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Functions;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -23,20 +25,86 @@ namespace maskx.AzurePolicy.Services
         {
             this._EffectPriority.Add(DisabledEffectName, 0);
             this._EffectPriority.Add(DenyEffectName, 200);
-            this._Effects.Add("append", (detail, context) =>
+            //  use modify effect insteade append effect
+            this._Effects.Add("modify", (detail, context) =>
             {
+                var deployCxt = context[ContextKeys.DEPLOY_CONTEXT] as DeploymentContext;
+                var policyCxt = context[ContextKeys.POLICY_CONTEXT] as PolicyContext;
+                var resource = JObject.Parse(policyCxt.Resource);
+                var properties = resource["properties"] as JObject;
+                using var doc = JsonDocument.Parse(detail);
+                var operations = doc.RootElement.GetProperty("operations");
+                foreach (var item in operations.EnumerateArray())
+                {
+                    switch (item.GetProperty("").GetString().ToLower())
+                    {
+                        case "addOrReplace":
+                            ModifyAddOrReplaceOperation(properties, item, context);
+                            break;
+                        case "Add":
+                            ModifyAddOperation(properties, item, context);
+                            break;
+                        case "Remove":
+                            ModifyRemoveOperation(properties, item, context);
+                            break;
+                        default:
+                            break;
+                    }
+
+                }
+                var template = JObject.Parse(deployCxt.TemplateContent);
+                string resourceName = resource["Name"].ToString();
+                foreach (var item in (template["resources"] as JArray))
+                {
+                    if (item["name"].ToString() == resourceName)
+                    {
+                        break;
+                    }
+                }
                 return "";
             });
+        }
+        // TODO: ModifyAddOperation
+        private void ModifyAddOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
+        {
+
+            var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
+            var value = operation.GetProperty("value").GetRawText();
+            field = field.Remove(0, field.LastIndexOf('/') + 1);
+            if (field.EndsWith("[*]"))
+            {
+                field = field.Remove(0, field.Length - 3);
+            }
+            else
+            {
+                // TODO: 需要考虑 节点 不存在，需要新增的情况
+                var p = properties.SelectToken(field) as JArray;
+                p.Add(JToken.Parse(value));
+            }
+        }
+        // ModifyAddOrReplaceOperation
+        private void ModifyAddOrReplaceOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
+        {
+
+        }
+        // ModifyRemoveOperation
+        private void ModifyRemoveOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
+        {
+
         }
         public void SetEffect(string name, Func<string, Dictionary<string, object>, string> func)
         {
             this._Effects[name] = func;
         }
-        public string Run(string name, string detail, Dictionary<string, object> context)
+        public string Run(PolicyContext policyContext, DeploymentContext deploymentContext)
         {
-            if (!this._Effects.TryGetValue(name, out Func<string, Dictionary<string, object>, string> func))
-                throw new Exception($"cannot find an effect named '{name}'");
-            return func(detail, context);
+            if (!this._Effects.TryGetValue(policyContext.PolicyDefinition.EffectName, out Func<string, Dictionary<string, object>, string> func))
+                throw new Exception($"cannot find an effect named '{policyContext.PolicyDefinition.EffectName}'");
+            return func(policyContext.PolicyDefinition.EffectDetail,
+                new Dictionary<string, object>() {
+                    { ContextKeys.POLICY_CONTEXT,policyContext},
+                    {ContextKeys.DEPLOY_CONTEXT,deploymentContext }
+                });
         }
         public int ParseEffect(PolicyDefinition policyDefinition, Dictionary<string, object> context)
         {
