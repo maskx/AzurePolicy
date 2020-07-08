@@ -2,7 +2,7 @@
 {
     public static class ContextKeys
     {
-        public const string POLICY_CONTEXT = "policy_contexT";
+        public const string POLICY_CONTEXT = "policy_context";
         public const string DEPLOY_CONTEXT = "deploy_context";
         // https://docs.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#count-examples
         // field function need this to return count
