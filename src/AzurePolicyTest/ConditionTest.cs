@@ -209,10 +209,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "containsKey")]
         public void ContainsKey()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "containsKey",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_containsKey",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
@@ -221,10 +221,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notContainsKey")]
         public void NotContainsKey()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "notContainsKey",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_notContainsKey",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
@@ -233,10 +233,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "exists")]
         public void Exists()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "exists",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_exists",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
