@@ -239,9 +239,7 @@ namespace maskx.AzurePolicy.Services
                     else
                         left = r;
                 }
-                //TODO:confirm condition name spellformat
-                else if (_Conditions.TryGetValue(item.Name, out func))//else if (_Conditions.TryGetValue(item.Name.ToLower(), out func))
-                {
+                else if (_Conditions.TryGetValue(item.Name, out func))                {
                     right = item.Value.GetEvaluatedValue(_ARMFunctions, context);
                 }
             }
