@@ -3,13 +3,14 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "location": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "east"
     }
   },
  
       "resources": [
         {
-          "type": "subnets",
+          "type": "Microsoft.Network/virtualNetworks/subnets",
           "apiVersion": "2018-10-01",
           "name": "Subnet1",
           "location": "[parameters('location')]",

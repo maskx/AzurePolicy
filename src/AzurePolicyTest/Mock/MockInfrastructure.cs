@@ -1,4 +1,5 @@
-﻿using maskx.AzurePolicy;
+﻿using maskx.ARMOrchestration.ARMTemplate;
+using maskx.AzurePolicy;
 using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Services;
 using System.Collections.Generic;
@@ -16,9 +17,9 @@ namespace AzurePolicyTest.Mock
             var seg = scope.Split("/");
             var sub = seg[2];
             var rg = seg[^1];
-            rtv.Add((PolicyDefinition.Parse(TestHelper.GetJsonFileContent($"JSON/policy/{sub}_{rg}")),
+            rtv.Add((PolicyDefinition.Parse(TestHelper.GetJsonFileContent($"JSON/policy/{rg}")),
                 string.Empty));
-            if (sub== "Effect" && rg == "Disabled")
+            if (rg == "Effect_Disabled")
                 rtv.Add((PolicyDefinition.Parse(TestHelper.GetJsonFileContent("JSON/policy/effect_deny")),
                 string.Empty));
             return rtv;
@@ -28,6 +29,11 @@ namespace AzurePolicyTest.Mock
         {
             var rtv = new List<(PolicyInitiative PolicyInitiative, string Parameter)>();
             return rtv;
+        }
+
+        public Template GetARMTemplateByScope(string scope)
+        {
+            return new Template();
         }
     }
 }

@@ -15,10 +15,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "field")]
         public void Field()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Function",
-                ResourceGroup = "Field",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Function_Field",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
@@ -27,10 +27,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "fieldInLength")]
         public void FieldInLength()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Function",
-                ResourceGroup = "FieldInLength",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Function_FieldInLength",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
@@ -39,10 +39,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "addDays")]
         public void AddDays()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Function",
-                ResourceGroup = "addDays",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Function_addDays",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);

@@ -18,10 +18,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName ="name")]
         public void Name()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "field",
-                ResourceGroup = "name",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Field_name",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
@@ -30,10 +30,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "type")]
         public void Type()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "field",
-                ResourceGroup = "type",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Field_type",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
@@ -42,10 +42,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "fullName")]
         public void FullName()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "field",
-                ResourceGroup = "fullName",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Field_fullName",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
             });
             Assert.False(rtv.Result);

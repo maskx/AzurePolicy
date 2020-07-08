@@ -15,10 +15,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "not")]
         public void Not()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Logical",
-                ResourceGroup = "not",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Logical_not",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
@@ -27,10 +27,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "allOf")]
         public void AllOf()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Logical",
-                ResourceGroup = "allOf",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Logical_allOf",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
@@ -39,10 +39,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "anyOf")]
         public void AnyOf()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Logical",
-                ResourceGroup = "anyOf",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Logical_anyOf",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);

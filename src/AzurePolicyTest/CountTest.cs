@@ -15,10 +15,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "CountNoWhere")]
         public void CountNoWhere()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Count",
-                ResourceGroup = "NoWhere",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Count_NoWhere",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
@@ -27,10 +27,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "CountWhere")]
         public void CountWhere()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Count",
-                ResourceGroup = "Where",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Count_Where",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
@@ -39,10 +39,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "CountWhereWithChildProperty")]
         public void CountWhereWithChildProperty()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Count",
-                ResourceGroup = "WhereWithChildProperty",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Count_WhereWithChildProperty",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count_child_property")
             });
             Assert.False(rtv.Result);

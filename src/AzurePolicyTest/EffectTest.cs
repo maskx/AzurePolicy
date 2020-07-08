@@ -15,10 +15,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "Disabled")]
         public void Disabled()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Effect",
-                ResourceGroup = "Disabled",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Effect_Disabled",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
@@ -27,10 +27,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "Deny")]
         public void Deny()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Effect",
-                ResourceGroup = "Deny",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Effect_Deny",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);

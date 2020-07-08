@@ -15,10 +15,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "equals")]
         public void ConditionEquals()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "equals",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_equals",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
@@ -28,10 +28,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notEquals")]
         public void NotEquals()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "NotEquals",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_NotEquals",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
@@ -40,10 +40,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "like")]
         public void Like()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "Like",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_Like",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
@@ -52,10 +52,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notLike")]
         public void NotLike()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "notLike",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_notLike",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
@@ -65,10 +65,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "in")]
         public void In()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "In",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_In",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
             });
             Assert.False(rtv.Result);
@@ -77,10 +77,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notIn")]
         public void NotIn()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "NotIn",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_NotIn",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
             });
             Assert.True(rtv.Result);
@@ -89,10 +89,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "match")]
         public void ConditionMatch()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "match",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_match",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
@@ -101,10 +101,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notMatch")]
         public void NotMatch()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "NotMatch",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_NotMatch",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
@@ -113,10 +113,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "matchInsensitively")]
         public void ConditionMatchInsensitively()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "matchInsensitively",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_matchInsensitively",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
@@ -125,10 +125,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notMatchInsensitively")]
         public void NotMatchInsensitively()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "notMatchInsensitively",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_notMatchInsensitively",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
@@ -137,10 +137,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "contains")]
         public void Contains()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "Contains",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_Contains",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
@@ -149,10 +149,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notContains")]
         public void NotContains()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "NotContains",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_NotContains",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.True(rtv.Result);
@@ -161,10 +161,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "less")]
         public void Less()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "less",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_less",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
@@ -173,10 +173,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "greater")]
         public void Greater()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "Greater",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_Greater",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
@@ -185,10 +185,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "lessOrEquals")]
         public void LessOrEquals()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "lessOrEquals",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_lessOrEquals",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
@@ -197,10 +197,10 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "greaterOrEquals")]
         public void GreaterOrEquals()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentContext()
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
-                SubscriptionId = "Condition",
-                ResourceGroup = "GreaterOrEquals",
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_GreaterOrEquals",
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
