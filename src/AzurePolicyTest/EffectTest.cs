@@ -22,7 +22,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "Deny")]
         public void Deny()
@@ -34,7 +34,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
     }
 }

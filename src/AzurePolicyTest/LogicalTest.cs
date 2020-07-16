@@ -22,7 +22,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "allOf")]
         public void AllOf()
@@ -34,7 +34,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "anyOf")]
         public void AnyOf()
@@ -46,7 +46,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
     }
 }

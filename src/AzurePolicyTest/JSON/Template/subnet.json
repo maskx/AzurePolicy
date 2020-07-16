@@ -7,24 +7,19 @@
       "defaultValue": "east"
     }
   },
- 
-      "resources": [
-        {
-          "type": "Microsoft.Network/virtualNetworks/subnets",
-          "apiVersion": "2018-10-01",
-          "name": "Subnet1",
-          "location": "[parameters('location')]",
-          "dependsOn": [
-            "VNet1"
-          ],
-          "properties": {
-            "addressPrefix": "10.0.0.0/24"
-          },
-          "tags": {
-            "CostCenter": "chengdu",
-            "Role": "AppServer"
-          }
-        }
-      ]
- 
+  "resources": [
+    {
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "apiVersion": "2018-10-01",
+      "name": "Subnet1",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressPrefix": "10.0.0.0/24"
+      },
+      "tags": {
+        "CostCenter": "chengdu",
+        "Role": "AppServer"
+      }
+    }
+  ]
 }

@@ -22,7 +22,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.Single( rtv.DeniedPolicy);
+            Assert.NotNull( rtv.PolicyContext);
         }
      
         [Fact(DisplayName = "notEquals")]
@@ -35,7 +35,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Empty(rtv.DeniedPolicy);
+            Assert.Null(rtv.PolicyContext);
         }
         [Fact(DisplayName = "like")]
         public void Like()
@@ -47,7 +47,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "notLike")]
         public void NotLike()
@@ -59,7 +59,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Empty(rtv.DeniedPolicy);
+            Assert.Null(rtv.PolicyContext);
 
         }
         [Fact(DisplayName = "in")]
@@ -72,7 +72,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
             });
             Assert.False(rtv.Result);
-            Assert.Equal(2,rtv.DeniedPolicy.Count);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "notIn")]
         public void NotIn()
@@ -84,7 +84,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
             });
             Assert.True(rtv.Result);
-            Assert.Empty(rtv.DeniedPolicy);
+            Assert.Null(rtv.PolicyContext);
         }
         [Fact(DisplayName = "match")]
         public void ConditionMatch()
@@ -96,7 +96,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "notMatch")]
         public void NotMatch()
@@ -108,7 +108,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Empty(rtv.DeniedPolicy);
+            Assert.Null(rtv.PolicyContext);
         }
         [Fact(DisplayName = "matchInsensitively")]
         public void ConditionMatchInsensitively()
@@ -120,7 +120,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "notMatchInsensitively")]
         public void NotMatchInsensitively()
@@ -132,7 +132,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Empty(rtv.DeniedPolicy);
+            Assert.Null(rtv.PolicyContext);
         }
         [Fact(DisplayName = "contains")]
         public void Contains()
@@ -144,7 +144,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "notContains")]
         public void NotContains()
@@ -156,7 +156,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.True(rtv.Result);
-            Assert.Empty(rtv.DeniedPolicy);
+            Assert.Null(rtv.PolicyContext);
         }
         [Fact(DisplayName = "less")]
         public void Less()
@@ -168,7 +168,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "greater")]
         public void Greater()
@@ -180,7 +180,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Empty(rtv.DeniedPolicy);
+            Assert.Null(rtv.PolicyContext);
         }
         [Fact(DisplayName = "lessOrEquals")]
         public void LessOrEquals()
@@ -192,7 +192,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "greaterOrEquals")]
         public void GreaterOrEquals()
@@ -204,7 +204,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Empty(rtv.DeniedPolicy);
+            Assert.Null(rtv.PolicyContext);
         }
         [Fact(DisplayName = "containsKey")]
         public void ContainsKey()
@@ -216,7 +216,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "notContainsKey")]
         public void NotContainsKey()
@@ -228,7 +228,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Empty(rtv.DeniedPolicy);
+            Assert.Null(rtv.PolicyContext);
         }
         [Fact(DisplayName = "exists")]
         public void Exists()
@@ -240,7 +240,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
     }
 }

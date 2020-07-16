@@ -1,5 +1,4 @@
-﻿using maskx.AzurePolicy.Definitions;
-using System.Collections.Generic;
+﻿using maskx.ARMOrchestration.Orchestrations;
 
 namespace maskx.AzurePolicy.Services
 {
@@ -7,7 +6,7 @@ namespace maskx.AzurePolicy.Services
     {
         public bool Result { get; set; }
         public string Message { get; set; }
-        public string Template { get; set; }
-        public List<PolicyDefinition> DeniedPolicy { get; set; } = new List<PolicyDefinition>();
+        public DeploymentOrchestrationInput DeploymentOrchestrationInput { get; set; }
+        public PolicyContext PolicyContext { get; set; }
     }
 }

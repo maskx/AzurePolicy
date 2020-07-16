@@ -22,7 +22,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "fieldInLength")]
         public void FieldInLength()
@@ -34,7 +34,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "addDays")]
         public void AddDays()
@@ -46,7 +46,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
     }
 }

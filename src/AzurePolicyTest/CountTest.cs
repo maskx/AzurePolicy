@@ -22,7 +22,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "CountWhere")]
         public void CountWhere()
@@ -34,7 +34,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
         [Fact(DisplayName = "CountWhereWithChildProperty")]
         public void CountWhereWithChildProperty()
@@ -46,7 +46,7 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/count_child_property")
             });
             Assert.False(rtv.Result);
-            Assert.Single(rtv.DeniedPolicy);
+            Assert.NotNull(rtv.PolicyContext);
         }
     }
 }

@@ -10,68 +10,88 @@
       "defaultValue": "networkInterfaceName1"
     },
     "networkSecurityGroupName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "networkSecurityGroupName1"
     },
     "networkSecurityGroupRules": {
-      "type": "array"
+      "type": "array",
+        "defaultValue": []
     },
     "subnetName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "subnetName1"
     },
     "virtualNetworkName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "virtualNetworkName1"
     },
     "addressPrefixes": {
-      "type": "array"
+      "type": "array",
+      "defaultValue": []
     },
     "subnets": {
-      "type": "array"
+      "type": "array",
+        "defaultValue": []
     },
     "publicIpAddressName": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "publicIpAddressName1"
     },
     "publicIpAddressType": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "publicIpAddressType1"
     },
     "publicIpAddressSku": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "publicIpAddressSku"
     },
     "virtualMachineName": {
       "type": "string",
       "defaultValue": "virtualMachineName1"
     },
     "virtualMachineRG": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "virtualMachineRG1"
     },
     "osDiskType": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "osDiskType1"
     },
     "virtualMachineSize": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "virtualMachineSize1"
     },
     "adminUsername": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "adminUsername1"
     },
     "adminPassword": {
-      "type": "secureString"
+      "type": "secureString",
+      "defaultValue": "adminPassword1"
     },
     "autoShutdownStatus": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "autoShutdownStatus1"
     },
     "autoShutdownTime": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "autoShutdownTime1"
     },
     "autoShutdownTimeZone": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "autoShutdownTimeZone1"
     },
     "autoShutdownNotificationStatus": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "autoShutdownNotificationStatus"
     },
     "autoShutdownNotificationLocale": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "autoShutdownNotificationLocale"
     },
     "autoShutdownNotificationEmail": {
-      "type": "string"
+      "type": "string",
+      "defaultValue": "autoShutdownNotificationEmail1"
     }
   },
   "variables": {
@@ -85,11 +105,6 @@
       "type": "Microsoft.Network/networkInterfaces",
       "apiVersion": "2019-07-01",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkSecurityGroups/', parameters('networkSecurityGroupName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-        "[concat('Microsoft.Network/publicIpAddresses/', parameters('publicIpAddressName'))]"
-      ],
       "properties": {
         "ipConfigurations": [
           {
@@ -160,9 +175,6 @@
       "type": "Microsoft.Compute/virtualMachines",
       "apiVersion": "2019-07-01",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', parameters('networkInterfaceName'))]"
-      ],
       "properties": {
         "hardwareProfile": {
           "vmSize": "[parameters('virtualMachineSize')]"
@@ -203,9 +215,6 @@
       "type": "Microsoft.DevTestLab/schedules",
       "apiVersion": "2017-04-26-preview",
       "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]"
-      ],
       "properties": {
         "status": "[parameters('autoShutdownStatus')]",
         "taskType": "ComputeVmShutdownTask",

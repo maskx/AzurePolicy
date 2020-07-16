@@ -9,5 +9,6 @@ namespace maskx.AzurePolicy.Services
         public string Parameters { get; set; }
         public string Resource { get; set; }
         public string NamePath { get; set; }
+        public EvaluatingPhase EvaluatingPhase { get; set; }
     }
 }
