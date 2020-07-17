@@ -35,5 +35,11 @@ namespace AzurePolicyTest.Mock
         {
             return new Template();
         }
+
+        public void Audit(PolicyContext policyContext)
+        {
+           
+
+        }
     }
 }

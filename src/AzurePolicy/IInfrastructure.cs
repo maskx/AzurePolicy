@@ -9,6 +9,7 @@ namespace maskx.AzurePolicy
     {
         List<(PolicyDefinition PolicyDefinition,string Parameter)> GetPolicyDefinitions(string scope, EvaluatingPhase evaluatingPhase);
         List<(PolicyInitiative PolicyInitiative,string Parameter)> GetPolicyInitiatives(string scope, EvaluatingPhase evaluatingPhase);
+        void Audit(PolicyContext policyContext);
         Template GetARMTemplateByScope(string scope);
         BuiltinServiceType BuitinServiceTypes { get; set; }
         BuiltinPathSegment BuiltinPathSegment { get; set; }
