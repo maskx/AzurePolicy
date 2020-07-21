@@ -20,106 +20,124 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="JSON\policy\Condition_exists.json">
+    <None Update="JSON\policy\Condition\exists.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_notContainsKey.json">
+    <None Update="JSON\policy\Condition\notContainsKey.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_containsKey.json">
+    <None Update="JSON\policy\Condition\containsKey.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_MatchInsensitively.json">
+    <None Update="JSON\policy\Condition\MatchInsensitively.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_notEquals.json">
+    <None Update="JSON\policy\Condition\notEquals.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_equals.json">
+    <None Update="JSON\policy\Condition\equals.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_Contains.json">
+    <None Update="JSON\policy\Condition\Contains.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_greater.json">
+    <None Update="JSON\policy\Condition\greater.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_greaterOrEquals.json">
+    <None Update="JSON\policy\Condition\greaterOrEquals.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_lessOrEquals.json">
+    <None Update="JSON\policy\Condition\lessOrEquals.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_less.json">
+    <None Update="JSON\policy\Condition\less.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_Match.json">
+    <None Update="JSON\policy\Condition\Match.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_notMatchInsensitively.json">
+    <None Update="JSON\policy\Condition\notMatchInsensitively.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_notMatch.json">
+    <None Update="JSON\policy\Condition\notMatch.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_notLike.json">
+    <None Update="JSON\policy\Condition\notLike.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_like.json">
+    <None Update="JSON\policy\Condition\like.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_NotContains.json">
+    <None Update="JSON\policy\Condition\NotContains.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_NotIn.json">
+    <None Update="JSON\policy\Condition\NotIn.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Count_WhereWithChildProperty.json">
+    <None Update="JSON\policy\Count\WhereWithChildProperty.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Count_Where.json">
+    <None Update="JSON\policy\Count\Where.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Count_NoWhere.json">
+    <None Update="JSON\policy\Count\NoWhere.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Condition_In.json">
+    <None Update="JSON\policy\Condition\In.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\effect_DeployIfNotExists.json">
+    <None Update="JSON\policy\effect\DeployIfNotExists.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\field_fullName.json">
+    <None Update="JSON\policy\ModifyEffect\RmoveOjbjectInArray.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Function_addDays.json">
+    <None Update="JSON\policy\ModifyEffect\RmoveStringItemInArray.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Function_FieldInLength.json">
+    <None Update="JSON\policy\ModifyEffect\RmoveArrayNotExist.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Logical_anyOf.json">
+    <None Update="JSON\policy\ModifyEffect\RmoveArray.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Logical_allOf.json">
+    <None Update="JSON\policy\ModifyEffect\RmoveJobjectNotExist.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Function_Field.json">
+    <None Update="JSON\policy\ModifyEffect\RmoveJobject.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\Logical_not.json">
+    <None Update="JSON\policy\field\fullName.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\effect_disabled.json">
+    <None Update="JSON\policy\Function\addDays.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\effect_deny.json">
+    <None Update="JSON\policy\Function\FieldInLength.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\field_name.json">
+    <None Update="JSON\policy\Logical\anyOf.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\field_type.json">
+    <None Update="JSON\policy\Logical\allOf.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\Function\Field.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\Logical\not.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\effect\disabled.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\effect\deny.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\field\name.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\field\type.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="JSON\Template\count_child_property.json">

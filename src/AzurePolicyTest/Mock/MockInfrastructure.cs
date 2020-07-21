@@ -16,11 +16,11 @@ namespace AzurePolicyTest.Mock
             var rtv = new List<(PolicyDefinition PolicyDefinition, string Parameter)>();
             var seg = scope.Split("/");
             var sub = seg[2];
-            var rg = seg[^1];
+            var rg = seg[^1].Replace('_','/');
             rtv.Add((PolicyDefinition.Parse(TestHelper.GetJsonFileContent($"JSON/policy/{rg}")),
                 string.Empty));
-            if (rg == "Effect_Disabled")
-                rtv.Add((PolicyDefinition.Parse(TestHelper.GetJsonFileContent("JSON/policy/effect_deny")),
+            if (rg == "Effect/Disabled")
+                rtv.Add((PolicyDefinition.Parse(TestHelper.GetJsonFileContent("JSON/policy/effect/deny")),
                 string.Empty));
             return rtv;
         }

@@ -14,7 +14,20 @@
       "name": "Subnet1",
       "location": "[parameters('location')]",
       "properties": {
-        "addressPrefix": "10.0.0.0/24"
+        "addressPrefix": "10.0.0.0/24",
+        "networkSecurityGroup": {
+          "id": "123"
+        },
+        "addressPrefixes": [ "10.0.0.0/24", "10.0.0.0/16" ],
+        "serviceEndpoints": [
+          {
+            "locations": [
+              "asd",
+              "123"
+
+            ]
+          }
+        ]
       },
       "tags": {
         "CostCenter": "chengdu",
