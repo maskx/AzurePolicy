@@ -643,7 +643,7 @@ namespace maskx.AzurePolicy.Functions
                 var policyCxt = poliyContext as PolicyContext;
                 var depolyCxt = depolyContext as DeploymentContext;
                 var par = args.EvaluateParameters(cxt);
-                args.Result = Field(par[0].ToString(), policyCxt.Resource, depolyCxt);
+                args.Result = Field(par[0].ToString(), policyCxt, depolyCxt);
             });
             Functions.Add("adddays", (args, cxt) =>
             {
@@ -677,15 +677,15 @@ namespace maskx.AzurePolicy.Functions
             return function;
         }
 
-        public object Field(string fieldPath, string resource, DeploymentContext deployDontext, string namePath = "")
+        public object Field(string fieldPath, PolicyContext policyContext, DeploymentContext deployDontext)
         {
-            using var doc = JsonDocument.Parse(resource);
+            using var doc = JsonDocument.Parse(policyContext.Resource);
             var root = doc.RootElement;
             var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployDontext } };
             int index = fieldPath.LastIndexOf('/');
             if (index > 0)//property aliases
             {
-                string fullType = GetFullType(deployDontext, namePath, root);
+                string fullType = GetFullType(policyContext, root);
                 string type = fieldPath.Substring(0, index);
                 if (!string.Equals(fullType, type, StringComparison.OrdinalIgnoreCase))
                     return -1;
@@ -700,13 +700,13 @@ namespace maskx.AzurePolicy.Functions
                 if (!root.TryGetProperty("name", out JsonElement nameE))
                     throw new Exception("cannot find 'name' property");
                 var name = this._ARMFunctions.Evaluate(nameE.GetString(), context).ToString();
-                if (string.IsNullOrEmpty(namePath))
+                if (string.IsNullOrEmpty(policyContext.NamePath))
                     return name;
-                return $"{namePath}/{name}";
+                return $"{policyContext.NamePath}/{name}";
             }
             else if ("type".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
-            {
-                return GetFullType(deployDontext, namePath, root);
+            {                 
+                return GetFullType(policyContext, root);
             }
             var e = root.GetElementDotWithoutException(fieldPath);
             if (e.IsEqual(default))
@@ -714,45 +714,14 @@ namespace maskx.AzurePolicy.Functions
             return e.GetEvaluatedValue(_ARMFunctions, context);
         }
 
-        private string GetFullType(DeploymentContext context, string namePath, JsonElement root)
+        private string GetFullType(PolicyContext policyContext, JsonElement root)
         {
             if (!root.TryGetProperty("type", out JsonElement typeE))
                 throw new Exception("cannot find 'type' property");
-            var type = this._ARMFunctions.Evaluate(typeE.GetString(), new Dictionary<string, object>()
-                {
-                    {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
-
-                }).ToString();
-            if (string.IsNullOrEmpty(namePath))
+            var type = typeE.GetString();
+            if (string.IsNullOrEmpty(policyContext.ParentType))
                 return type;
-            string fulltype = GetParentType(context.TemplateContent, namePath.Split('/'), new Dictionary<string, object>()
-                {
-                    { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,context }
-
-                });
-            return $"{fulltype}/{type}";
-        }
-
-        private string GetParentType(string template, string[] path, Dictionary<string, object> context)
-        {
-            List<string> types = new List<string>();
-            using var doc = JsonDocument.Parse(template);
-            JsonElement element = doc.RootElement.GetProperty("resources");
-            foreach (var p in path)
-            {
-                foreach (var r in element.EnumerateArray())
-                {
-                    if (p == this._ARMFunctions.Evaluate(r.GetProperty("name").GetString(), context).ToString())
-                    {
-                        types.Add(this._ARMFunctions.Evaluate(r.GetProperty("type").GetString(), context).ToString());
-                        element = r.GetProperty("resources");
-                        break;
-                    }
-
-                }
-            }
-            return string.Join('/', types);
-
+            return $"{policyContext.ParentType}/{type}";
         }
     }
 }

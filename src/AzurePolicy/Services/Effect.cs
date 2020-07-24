@@ -1,4 +1,5 @@
-﻿using maskx.ARMOrchestration.Functions;
+﻿using maskx.ARMOrchestration.ARMTemplate;
+using maskx.ARMOrchestration.Functions;
 using maskx.ARMOrchestration.Orchestrations;
 using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Extensions;
@@ -6,7 +7,7 @@ using maskx.AzurePolicy.Functions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Text.Json;
 
 namespace maskx.AzurePolicy.Services
@@ -27,7 +28,7 @@ namespace maskx.AzurePolicy.Services
 
         public Effect(PolicyFunction policyFunction,
             ARMFunctions aRMFunctions,
-            ARMOrchestration.IInfrastructure aRMInfrastructure )
+            ARMOrchestration.IInfrastructure aRMInfrastructure)
         {
             this._PolicyFunction = policyFunction;
             this._ARMFunctions = aRMFunctions;
@@ -70,17 +71,25 @@ namespace maskx.AzurePolicy.Services
 
                 }
                 policyCxt.Resource = resource.ToString();
-
+                var template = JObject.Parse(input.TemplateContent);
                 // modify resource information in DeploymentOrchestrationInput 
-                string key = "";
-                input.Template.Resources[key] = ARMOrchestration.ARMTemplate.Resource.Parse(
-                    policyCxt.Resource,
-                    new Dictionary<string, object>() { },
+                var r = GetResourceByPath(template["resources"] as JArray,
+                    policyCxt.NamePath.Split('/').Append(resource["name"].ToString()).ToArray());
+                r.Replace(resource);
+                input.TemplateContent = template.ToString(Newtonsoft.Json.Formatting.Indented);
+                var res = Resource.Parse(policyCxt.Resource,
+                    new Dictionary<string, object> {
+                        { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, input }
+                    },
                     _ARMFunctions,
                     _ARMInfrastructure,
-                    "",
-                    ""
-                    )[0];
+                    policyCxt.NamePath,
+                    policyCxt.ParentType);
+                foreach (var rr in res)
+                {
+                    input.Template.Resources.Remove(rr);
+                    input.Template.Resources.Add(rr);
+                }
             });
             // TODO: DeployIfNotExists Effect 
             // https://docs.microsoft.com/en-us/azure/governance/policy/concepts/effects#deployifnotexists
@@ -88,8 +97,31 @@ namespace maskx.AzurePolicy.Services
             {
 
             });
-        }
+            this._Effects.Add("DenyIfNotExists", (detail, context) =>
+            {
 
+            });
+        }
+        private JObject GetResourceByPath(JArray jarray, string[] path)
+        {
+            JToken rtv = null;
+            JArray children = jarray;
+            foreach (var p in path)
+            {
+                foreach (var child in children)
+                {
+                    if (child["name"].ToString() == p)
+                    {
+                        rtv = child;
+                        children = rtv["resources"] as JArray;
+                        break;
+                    }
+                }
+            }
+            return rtv as JObject;
+
+
+        }
         // TODO: ModifyAddOperation
         private void ModifyAddOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
         {
@@ -116,7 +148,7 @@ namespace maskx.AzurePolicy.Services
         private void ModifyRemoveOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
         {
             var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
-            properties.RemoveToken(GetPathArray(field));// 当字符串中包含 . 时 回出错
+            properties.RemoveToken(GetPathArray(field));
 
         }
         private string[] GetPathArray(string path)

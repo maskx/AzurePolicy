@@ -22,7 +22,7 @@
           "operations": [
             {
               "operation": "Remove",
-              "field": "subnets[*].properties[*].addressPrefix"
+              "field": "subnets[*].properties.addressPrefix"
             }
           ]
         }

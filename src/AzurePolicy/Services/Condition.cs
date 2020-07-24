@@ -156,18 +156,12 @@ namespace maskx.AzurePolicy.Services
             {
                 var leftResult = (left!=null)&&((int)left!=-1);
                 var rightResult = false;
-                switch (right.ToString().ToLower())
+                rightResult = (right.ToString().ToLower()) switch
                 {
-                    case "true" :
-                        rightResult = true;
-                        break;
-                    case "false":
-                        rightResult = false;
-                        break;
-                    default:
-                        throw new Exception("input is not a valid bool string");
-
-                }
+                    "true" => true,
+                    "false" => false,
+                    _ => throw new Exception("input is not a valid bool string"),
+                };
                 return (leftResult == rightResult);
             });
         }
@@ -224,7 +218,7 @@ namespace maskx.AzurePolicy.Services
                     }
                     else
                     {
-                        left = _PolicyFunction.Field(path, policyCxt.Resource, deployCxt, policyCxt.NamePath);
+                        left = _PolicyFunction.Field(path, policyCxt, deployCxt);
                     }
                 }
                 else if ("value".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
@@ -233,7 +227,7 @@ namespace maskx.AzurePolicy.Services
                 }
                 else if ("count".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    var r = Count(item.Value, context, policyCxt.NamePath);
+                    var r = Count(item.Value, context);
                     if (r == -1)// https://docs.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#count
                         return false;
                     else
@@ -249,14 +243,14 @@ namespace maskx.AzurePolicy.Services
         }
        
 
-        public int Count(JsonElement element, Dictionary<string, object> context, string namePath = "")
+        public int Count(JsonElement element, Dictionary<string, object> context)
         {
             if (!element.TryGetProperty("field", out JsonElement fieldE))
                 return -1;
             var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentContext;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
             var path = this._PolicyFunction.Evaluate(fieldE.GetString(), context).ToString();
-            if (!(_PolicyFunction.Field(path, policyCxt.Resource, deployCxt, namePath) is List<object> d))
+            if (!(_PolicyFunction.Field(path, policyCxt, deployCxt) is List<object> d))
                 return 0;
             if (element.TryGetProperty("where", out JsonElement whereE))
             {
@@ -338,19 +332,14 @@ namespace maskx.AzurePolicy.Services
             //only both are datetime
             if (leftParse && rightParse)
             {
-                switch (operation)
+                return operation switch
                 {
-                    case "less":
-                        return leftTime < rightTime;
-                    case "lessOrEquals":
-                        return leftTime <= rightTime;
-                    case "greater":
-                        return leftTime > rightTime;
-                    case "greaterOrEquals":
-                        return leftTime >= rightTime;
-                    default:
-                        throw new NotImplementedException();
-                }
+                    "less" => leftTime < rightTime,
+                    "lessOrEquals" => leftTime <= rightTime,
+                    "greater" => leftTime > rightTime,
+                    "greaterOrEquals" => leftTime >= rightTime,
+                    _ => throw new NotImplementedException(),
+                };
             }
              leftParse = false;
              rightParse = false;
@@ -366,35 +355,24 @@ namespace maskx.AzurePolicy.Services
             //only both are int
             if (leftParse && rightParse)
             {
-                switch (operation)
+                return operation switch
                 {
-                    case "less":
-                        return leftInt < rightInt;
-                    case "lessOrEquals":
-                        return leftInt <= rightInt;
-                    case "greater":
-                        return leftInt > rightInt;
-                    case "greaterOrEquals":
-                        return leftInt >= rightInt;
-                    default:
-                        throw new NotImplementedException();
-
-                }
+                    "less" => leftInt < rightInt,
+                    "lessOrEquals" => leftInt <= rightInt,
+                    "greater" => leftInt > rightInt,
+                    "greaterOrEquals" => leftInt >= rightInt,
+                    _ => throw new NotImplementedException(),
+                };
             }
             //end with string compare
-            switch (operation)
+            return operation switch
             {
-                case "less":
-                    return (string.Compare(left,right)<0);
-                case "lessOrEquals":
-                    return (string.Compare(left, right) <=0);
-                case "greater":
-                    return (string.Compare(left, right) > 0);
-                case "greaterOrEquals":
-                    return (string.Compare(left, right) >= 0);
-                default:
-                    throw new NotImplementedException();
-            }
+                "less" => (string.Compare(left, right) < 0),
+                "lessOrEquals" => (string.Compare(left, right) <= 0),
+                "greater" => (string.Compare(left, right) > 0),
+                "greaterOrEquals" => (string.Compare(left, right) >= 0),
+                _ => throw new NotImplementedException(),
+            };
         }
     }
 }

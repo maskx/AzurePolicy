@@ -71,7 +71,7 @@ namespace maskx.AzurePolicy.Extensions
                             return;
                         foreach (var item in pathArray)
                         {
-                            (item as JObject).RemoveToken(path.Skip(i).ToArray());
+                            (item as JObject).RemoveToken(path.Skip(i+1).ToArray());
                         }
                     }
                     else

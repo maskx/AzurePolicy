@@ -10,7 +10,7 @@ namespace AzurePolicyTest.Mock
 {
     public class MockARMInfrastructure : IInfrastructure
     {
-        public BuiltinServiceTypes BuitinServiceTypes { get; set; } = new BuiltinServiceTypes();
+        public BuiltinServiceTypes BuiltinServiceTypes { get; set; } = new BuiltinServiceTypes();
         public BuiltinPathSegment BuiltinPathSegment { get; set; } = new BuiltinPathSegment();
         public bool InjectBeforeDeployment { get; set; } = false;
         public bool InjectAfterDeployment { get; set; } = false;
@@ -20,7 +20,7 @@ namespace AzurePolicyTest.Mock
         public List<(string Name, string Version)> AfterDeploymentOrhcestration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public List<(string Name, string Version)> BeforeResourceProvisioningOrchestation { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public List<(string Name, string Version)> AfterResourceProvisioningOrchestation { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
+       
         public (string GroupId, string GroupType, string HierarchyId) GetGroupInfo(string managementGroupId, string subscriptionId, string resourceGroupName)
         {
             return ("D51C2231-3D30-4FEB-BEBB-EDBE081106DA", "ResourceGroup","001002003004");

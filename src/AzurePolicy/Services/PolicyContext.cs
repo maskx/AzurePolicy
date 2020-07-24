@@ -1,5 +1,4 @@
 ﻿using maskx.AzurePolicy.Definitions;
-using System.Text.Json;
 
 namespace maskx.AzurePolicy.Services
 {
@@ -8,7 +7,8 @@ namespace maskx.AzurePolicy.Services
         public PolicyDefinition PolicyDefinition { get; set; }
         public string Parameters { get; set; }
         public string Resource { get; set; }
-        public string NamePath { get; set; }
+        public string NamePath { get; set; } = string.Empty;
+        public string ParentType { get; set; } = string.Empty;
         public EvaluatingPhase EvaluatingPhase { get; set; }
     }
 }

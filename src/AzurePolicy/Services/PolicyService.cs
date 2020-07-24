@@ -119,13 +119,18 @@ namespace maskx.AzurePolicy.Services
                     new Dictionary<string, object>() {
                         {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,deploymentContext }
                     }).ToString();
+                string t = resource.GetProperty("type").GetString();
                 if (!string.IsNullOrEmpty(policyContext.NamePath))
+                {
                     n = policyContext.NamePath + "/" + n;
+                    t = policyContext.ParentType + "/" + t;
+                }                    
                 foreach (var r in resources.EnumerateArray())
                 {
                     var policyCxt = new PolicyContext()
                     {
                         NamePath = n,
+                        ParentType =t,
                         Parameters = policyContext.Parameters,
                         PolicyDefinition = policyContext.PolicyDefinition,
                         Resource = r.GetRawText()
