@@ -158,6 +158,12 @@
     <None Update="JSON\policy\field\type.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="JSON\policy\PolicyService\nestTemplate.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\Template\nestTemplate.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="JSON\Template\count_child_property.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

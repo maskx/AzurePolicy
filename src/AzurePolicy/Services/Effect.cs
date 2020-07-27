@@ -91,16 +91,34 @@ namespace maskx.AzurePolicy.Services
                     input.Template.Resources.Add(rr);
                 }
             });
-            // TODO: DeployIfNotExists Effect 
-            // https://docs.microsoft.com/en-us/azure/governance/policy/concepts/effects#deployifnotexists
-            this._Effects.Add("DeployIfNotExists", (detail, context) =>
-            {
-
-            });
             this._Effects.Add("DenyIfNotExists", (detail, context) =>
             {
-
+                var input = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput;
+                var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
+               
+                using var doc = JsonDocument.Parse(detail);
+                var root = doc.RootElement;
+                if (!root.TryGetProperty("type", out JsonElement TypeE))
+                    throw new Exception("cannot find type property");
+                
             });
+        }
+        private string FindResource(string type,JsonElement root,Dictionary<string,object> context)
+        {
+            string name, resourceGroupName, existenceScope;
+            if (root.TryGetProperty("name", out JsonElement nameE))
+                name = _PolicyFunction.Evaluate(nameE.GetString(), context).ToString();
+            if (root.TryGetProperty("resourceGroupName", out JsonElement rgE))
+                resourceGroupName = _PolicyFunction.Evaluate(rgE.GetString(), context).ToString();
+            if (root.TryGetProperty("existenceScope", out JsonElement existenceScopeE))
+                existenceScope = _PolicyFunction.Evaluate(existenceScopeE.GetString(), context).ToString();
+           // FindInTemplate()
+           // FindAlreadyExist()
+            return string.Empty;
+        }
+        private string FindInTemplate(JsonElement resources)
+        {
+            return string.Empty;
         }
         private JObject GetResourceByPath(JArray jarray, string[] path)
         {
@@ -119,17 +137,15 @@ namespace maskx.AzurePolicy.Services
                 }
             }
             return rtv as JObject;
-
-
         }
-        // TODO: ModifyAddOperation
+
         private void ModifyAddOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
         {
             var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
-            var value =JToken.Parse( operation.GetProperty("value").GetRawText());
+            var value = JToken.Parse(operation.GetProperty("value").GetRawText());
             properties.Add(GetPathArray(field), value);
         }
-        // ModifyAddOrReplaceOperation
+
         private void ModifyAddOrReplaceOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
         {
             var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
@@ -137,7 +153,7 @@ namespace maskx.AzurePolicy.Services
             properties.AddOrRepleace(GetPathArray(field), value);
 
         }
-        // ModifyRemoveOperation
+
         private void ModifyRemoveOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
         {
             var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
@@ -184,6 +200,7 @@ namespace maskx.AzurePolicy.Services
         {
             this._Effects[name] = func;
         }
+
         public void Run(PolicyContext policyContext, DeploymentContext deploymentContext)
         {
             if (!this._Effects.TryGetValue(policyContext.PolicyDefinition.EffectName, out Action<string, Dictionary<string, object>> func))
@@ -194,6 +211,7 @@ namespace maskx.AzurePolicy.Services
                     {Functions.ContextKeys.DEPLOY_CONTEXT,deploymentContext }
                 });
         }
+
         public int ParseEffect(PolicyDefinition policyDefinition, Dictionary<string, object> context)
         {
             using var doc = JsonDocument.Parse(policyDefinition.PolicyRule.Then);
