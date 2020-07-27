@@ -20,7 +20,10 @@
         },
         "subnets": [
           {
-            "name": "subnet12"
+            "name": "subnet12",
+            "properties": {
+              "addressPrefix": "10.0.0.0/24"
+            }
           },
           {
             "name": "subnet2",

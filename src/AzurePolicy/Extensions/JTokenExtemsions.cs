@@ -71,7 +71,7 @@ namespace maskx.AzurePolicy.Extensions
                             return;
                         foreach (var item in pathArray)
                         {
-                            (item as JObject).RemoveToken(path.Skip(i+1).ToArray());
+                            (item as JObject).RemoveToken(path.Skip(i + 1).ToArray());
                         }
                     }
                     else
@@ -110,6 +110,7 @@ namespace maskx.AzurePolicy.Extensions
                             }
                         }
                     }
+                    return;
                 }
                 else
                 {
@@ -126,6 +127,67 @@ namespace maskx.AzurePolicy.Extensions
                         pathObj = p.Value as JObject;
                         if (pathObj == null)
                             return;
+                    }
+                }
+            }
+        }
+
+        public static void AddOrRepleace(this JObject jobj, string[] path, JToken value)
+        {
+            var pathObj = jobj;
+            string name = string.Empty;
+            for (int i = 0; i < path.Length; i++)
+            {
+                name = path[i];
+                if (name.EndsWith("[*]"))
+                {
+                    name = name[0..^3];
+                    var p = pathObj.Property(name);
+                    if (p == null)
+                    {
+                        p = new JProperty(name);
+                        pathObj.Add(p);
+                    }
+                    if (i == path.Length - 1)
+                    {
+                        if (p.Value is JArray child)
+                            child.Add(value);
+                        else
+                            p.Value = new JArray(value);
+                        return;
+                    }
+                    if (!(p.Value is JArray pathArray))
+                    {
+                        pathArray = new JArray();
+                        p.Value = pathArray;
+                    }
+                    foreach (var item in pathArray)
+                    {
+                        (item as JObject).AddOrRepleace(path.Skip(i + 1).ToArray(), value);
+                    }
+                    return;
+                }
+                else
+                {
+                    var p = pathObj.Property(name);
+                    if (p == null)
+                    {
+                        p = new JProperty(name);
+                        pathObj.Add(p);
+                    }
+                    if (i == path.Length - 1)
+                    {
+                        p.Value = value;
+                        return;
+                    }
+                    else
+                    {
+                        pathObj = p.Value as JObject;
+                        if (pathObj == null)
+                        {
+                            pathObj = new JObject();
+                            p.Value = pathObj;
+                        }
                     }
                 }
             }

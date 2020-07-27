@@ -142,6 +142,9 @@ namespace maskx.AzurePolicy.Services
         // ModifyAddOrReplaceOperation
         private void ModifyAddOrReplaceOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
         {
+            var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
+            JToken value = JToken.Parse(operation.GetProperty("value").GetRawText());
+            properties.AddOrRepleace(GetPathArray(field), value);
 
         }
         // ModifyRemoveOperation
