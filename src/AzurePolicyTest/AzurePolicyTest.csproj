@@ -89,6 +89,9 @@
     <None Update="JSON\policy\effect\DeployIfNotExists.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="JSON\policy\ModifyEffect\AddOrReplace\ReplaceItemInArray.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="JSON\policy\ModifyEffect\AddOrReplace\AddItemInArrayOfArray.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -99,6 +102,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="JSON\policy\ModifyEffect\AddOrReplace\AddItemInArray.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\ModifyEffect\Add\JobjectExist.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="JSON\policy\ModifyEffect\RmoveOjbjectInArray.json">

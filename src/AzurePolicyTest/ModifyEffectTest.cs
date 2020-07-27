@@ -351,6 +351,41 @@ namespace AzurePolicyTest
             Assert.Equal(1, addressPrefixes_t.EnumerateArray().Count((e) => e.GetString() == "10.0.0.1/12"));
         }
 
+        //[Fact(DisplayName = "AddOrReplace_ReplaceItemInArray")]
+        //public void AddOrReplace_ReplaceItemInArray()
+        //{
+        //    var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+        //    {
+        //        SubscriptionId = TestHelper.SubscriptionId,
+        //        ResourceGroup = "ModifyEffect_AddOrReplace_ReplaceItemInArray",
+        //        TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+        //    });
+        //    Assert.True(rtv.Result);
+        //    Assert.NotNull(rtv.DeploymentOrchestrationInput);
+        //    Assert.NotNull(rtv.PolicyContext);
+        //    // rtv.PolicyContext.Resource
+        //    using var doc_pc = JsonDocument.Parse(rtv.PolicyContext.Resource);
+        //    Assert.True(doc_pc.RootElement.TryGetProperty("properties", out JsonElement properties_pc));
+        //    Assert.True(properties_pc.TryGetProperty("addressPrefixes", out JsonElement addressPrefixes_pc));
+        //    Assert.Equal(2, addressPrefixes_pc.EnumerateArray().Count());
+
+        //    // rtv.DeploymentOrchestrationInput.TemplateContent
+        //    using var doc = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.TemplateContent);
+        //    Assert.True(doc.RootElement.TryGetProperty("resources", out JsonElement resources));
+        //    foreach (var r in resources.EnumerateArray())
+        //    {
+        //        Assert.True(r.TryGetProperty("properties", out JsonElement properties));
+        //        Assert.True(properties.TryGetProperty("addressPrefixes", out JsonElement addressPrefixes));
+        //        Assert.Equal(2, addressPrefixes.EnumerateArray().Count());
+        //    }
+
+        //    // rtv.DeploymentOrchestrationInput.Template.Resources
+        //    using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+        //    Assert.True(p.RootElement.TryGetProperty("addressPrefixes", out JsonElement addressPrefixes_t));
+        //    Assert.Equal(2, addressPrefixes_t.EnumerateArray().Count());
+        //}
+
+
         [Fact(DisplayName = "AddOrReplace_AddItemInArrayOfArray")]
         public void AddOrReplace_AddItemInArrayOfArray()
         {
@@ -398,5 +433,46 @@ namespace AzurePolicyTest
             }
         }
         #endregion
+
+        #region Add
+        [Fact(DisplayName = "Add_JobjectExist")]
+        public void Add_JobjectExist()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            {
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "ModifyEffect_Add_JobjectExist",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+            });
+            Assert.True(rtv.Result);
+            Assert.NotNull(rtv.DeploymentOrchestrationInput);
+            Assert.NotNull(rtv.PolicyContext);
+
+            // rtv.PolicyContext.Resource
+            using var pc = JsonDocument.Parse(rtv.PolicyContext.Resource);
+            Assert.True(pc.RootElement.TryGetProperty("properties", out JsonElement properties_pc));
+            Assert.True(properties_pc.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup_pc));
+            Assert.True(networkSecurityGroup_pc.TryGetProperty("id", out JsonElement v_pc));
+            Assert.Equal("123", v_pc.GetString());
+
+            //rtv.DeploymentOrchestrationInput.TemplateContent
+            using var doc = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.TemplateContent);
+            Assert.True(doc.RootElement.TryGetProperty("resources", out JsonElement resources));
+            foreach (var r in resources.EnumerateArray())
+            {
+                Assert.True(r.TryGetProperty("properties", out JsonElement properties));
+                Assert.True(properties.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup));
+                Assert.True(networkSecurityGroup.TryGetProperty("id", out JsonElement id));
+                Assert.Equal("123", id.GetString());
+            }
+
+            // rtv.DeploymentOrchestrationInput.Template
+            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+            Assert.True(p.RootElement.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup_t));
+            Assert.True(networkSecurityGroup_t.TryGetProperty("id", out JsonElement id_t));
+            Assert.Equal("123", id_t.GetString());
+        }
+        #endregion
+
     }
 }

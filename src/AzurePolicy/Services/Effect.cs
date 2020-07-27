@@ -126,18 +126,8 @@ namespace maskx.AzurePolicy.Services
         private void ModifyAddOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
         {
             var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
-            var value = operation.GetProperty("value").GetRawText();
-            field = field.Remove(0, field.LastIndexOf('/') + 1);
-            if (field.EndsWith("[*]"))
-            {
-                field = field.Remove(0, field.Length - 3);
-            }
-            else
-            {
-                // TODO: 需要考虑 节点 不存在，需要新增的情况
-                var p = properties.SelectToken(field) as JArray;
-                p.Add(JToken.Parse(value));
-            }
+            var value =JToken.Parse( operation.GetProperty("value").GetRawText());
+            properties.Add(GetPathArray(field), value);
         }
         // ModifyAddOrReplaceOperation
         private void ModifyAddOrReplaceOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)

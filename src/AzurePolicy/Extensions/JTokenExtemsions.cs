@@ -47,6 +47,7 @@ namespace maskx.AzurePolicy.Extensions
             }
             return rtv;
         }
+
         public static void RemoveToken(this JObject jobj, string[] path)
         {
             var pathObj = jobj;
@@ -151,7 +152,9 @@ namespace maskx.AzurePolicy.Extensions
                     if (i == path.Length - 1)
                     {
                         if (p.Value is JArray child)
+                        {
                             child.Add(value);
+                        }
                         else
                             p.Value = new JArray(value);
                         return;
@@ -175,6 +178,69 @@ namespace maskx.AzurePolicy.Extensions
                         p = new JProperty(name);
                         pathObj.Add(p);
                     }
+                    if (i == path.Length - 1)
+                    {
+                        p.Value = value;
+                        return;
+                    }
+                    else
+                    {
+                        pathObj = p.Value as JObject;
+                        if (pathObj == null)
+                        {
+                            pathObj = new JObject();
+                            p.Value = pathObj;
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void Add(this JObject jobj, string[] path, JToken value)
+        {
+            var pathObj = jobj;
+            string name = string.Empty;
+            for (int i = 0; i < path.Length; i++)
+            {
+                name = path[i];
+                if (name.EndsWith("[*]"))
+                {
+                    name = name[0..^3];
+                    var p = pathObj.Property(name);
+                    if (p == null)
+                    {
+                        p = new JProperty(name);
+                        pathObj.Add(p);
+                    }
+                    if (i == path.Length - 1)
+                    {
+                        if (p.Value is JArray child)
+                            child.Add(value);
+                        else
+                            p.Value = new JArray(value);
+                        return;
+                    }
+                    if (!(p.Value is JArray pathArray))
+                    {
+                        pathArray = new JArray();
+                        p.Value = pathArray;
+                    }
+                    foreach (var item in pathArray)
+                    {
+                        (item as JObject).Add(path.Skip(i + 1).ToArray(), value);
+                    }
+                    return;
+                }
+                else
+                {
+                    var p = pathObj.Property(name);
+                    if (p == null)
+                    {
+                        p = new JProperty(name);
+                        pathObj.Add(p);
+                    }
+                    else if (i == path.Length - 1) // only create new, not modify existing node
+                        return;
                     if (i == path.Length - 1)
                     {
                         p.Value = value;
