@@ -12,6 +12,7 @@ namespace AzurePolicyTest
         {
             this.fixture = fixture;
         }
+        
         [Fact(DisplayName = "Disabled")]
         public void Disabled()
         {
@@ -24,6 +25,7 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+        
         [Fact(DisplayName = "Deny")]
         public void Deny()
         {
@@ -35,6 +37,51 @@ namespace AzurePolicyTest
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
+        }
+
+        [Fact(DisplayName = "DenyIfNotExists_ExistsInTemplate")]
+        public void DenyIfNotExists_ExistsInTemplate()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            {
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "DenyIfNotExists_ExistsInTemplate",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+            });
+            Assert.True(rtv.Result);
+        }
+        [Fact(DisplayName = "DenyIfNotExists_ExistsInInfrastructure")]
+        public void DenyIfNotExists_ExistsInInfrastructure()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            {
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "DenyIfNotExists_ExistsInInfrastructure",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+            });
+            Assert.True(rtv.Result);
+        }
+        [Fact(DisplayName = "DenyIfNotExists_ExistsInTemplateWithCondition")]
+        public void DenyIfNotExists_ExistsInTemplateWithCondition()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            {
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "DenyIfNotExists_ExistsInTemplateWithCondition",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+            });
+            Assert.True(rtv.Result);
+        }
+        [Fact(DisplayName = "DenyIfNotExists_ExistsInInfrastructureWithCondition")]
+        public void DenyIfNotExists_ExistsInInfrastructureWithCondition()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            {
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "DenyIfNotExists_ExistsInInfrastructureWithCondition",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+            });
+            Assert.True(rtv.Result);
         }
     }
 }

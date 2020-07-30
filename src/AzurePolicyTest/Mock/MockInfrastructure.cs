@@ -41,5 +41,14 @@ namespace AzurePolicyTest.Mock
            
 
         }
+
+        public bool ResourceIsExisting(string type, string name, string resourceGroup, string scope, string condition)
+        {
+            if (name == "ExistsInInfrastructure")
+                return true;
+            if (name == "networkInterfaceName1")
+                return true;
+            return false;
+        }
     }
 }

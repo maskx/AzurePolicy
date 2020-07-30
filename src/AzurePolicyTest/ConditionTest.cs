@@ -141,7 +141,7 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_Contains",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);

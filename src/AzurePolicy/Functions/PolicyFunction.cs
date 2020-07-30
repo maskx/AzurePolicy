@@ -5,7 +5,9 @@ using maskx.AzurePolicy.Services;
 using maskx.Expression;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -20,11 +22,13 @@ namespace maskx.AzurePolicy.Functions
     {
         private readonly Dictionary<string, Action<FunctionArgs, Dictionary<string, object>>> Functions = new Dictionary<string, Action<FunctionArgs, Dictionary<string, object>>>();
         private readonly ARMFunctions _ARMFunctions;
+
         public PolicyFunction(ARMFunctions aRMFunctions)
         {
             this._ARMFunctions = aRMFunctions;
             InitBuiltInFunctions();
         }
+
         private void InitBuiltInFunctions()
         {
             #region Array and object
@@ -654,6 +658,7 @@ namespace maskx.AzurePolicy.Functions
             });
             #endregion
         }
+
         public object Evaluate(string function, Dictionary<string, object> context)
         {
             if (string.IsNullOrEmpty(function))
@@ -676,7 +681,7 @@ namespace maskx.AzurePolicy.Functions
             }
             return function;
         }
-
+       
         public object Field(string fieldPath, PolicyContext policyContext, DeploymentContext deployDontext)
         {
             using var doc = JsonDocument.Parse(policyContext.Resource);
@@ -705,7 +710,7 @@ namespace maskx.AzurePolicy.Functions
                 return $"{policyContext.NamePath}/{name}";
             }
             else if ("type".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
-            {                 
+            {
                 return GetFullType(policyContext, root);
             }
             var e = root.GetElementDotWithoutException(fieldPath);

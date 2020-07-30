@@ -86,7 +86,19 @@
     <None Update="JSON\policy\Condition\In.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\effect\DeployIfNotExists.json">
+    <None Update="JSON\policy\DenyIfNotExists\ExistsInInfrastructure.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\DenyIfNotExists\ExistsInInfrastructureWithCondition.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\DenyIfNotExists\ExistsInTemplateWithCondition.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\DenyIfNotExists\ExistsInTemplate.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JSON\policy\Effect\DeployIfNotExists.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="JSON\policy\ModifyEffect\AddOrReplace\ReplaceItemInArray.json">
@@ -146,10 +158,10 @@
     <None Update="JSON\policy\Logical\not.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\effect\disabled.json">
+    <None Update="JSON\policy\Effect\disabled.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JSON\policy\effect\deny.json">
+    <None Update="JSON\policy\Effect\deny.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="JSON\policy\field\name.json">

@@ -1,4 +1,5 @@
-﻿using maskx.AzurePolicy.Definitions;
+﻿using maskx.ARMOrchestration.Orchestrations;
+using maskx.AzurePolicy.Definitions;
 
 namespace maskx.AzurePolicy.Services
 {
@@ -10,5 +11,6 @@ namespace maskx.AzurePolicy.Services
         public string NamePath { get; set; } = string.Empty;
         public string ParentType { get; set; } = string.Empty;
         public EvaluatingPhase EvaluatingPhase { get; set; }
+        public DeploymentOrchestrationInput RootInput { get; set; }
     }
 }

@@ -107,7 +107,7 @@ namespace maskx.AzurePolicy.Extensions
                         if (path.Count == 0)
                             list.Add(item.GetEvaluatedValue(functions, context));
                         else
-                            list.AddRange(e2.GetElements(path, functions, context));
+                            list.AddRange(item.GetElements(path, functions, context));
                     }
                 }
             }

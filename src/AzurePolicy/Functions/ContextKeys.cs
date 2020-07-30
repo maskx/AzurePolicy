@@ -9,6 +9,5 @@
         public const string COUNT_ELEMENT = "count_element";
         public const string COUNT_FIELD = "count_field";
         public const string INITIATIVE_PARAMERTERS = "initiative_paramerters";
-        public const string EVALUATING_PHASE = "evaluating_phase";
     }
 }

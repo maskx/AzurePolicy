@@ -81,7 +81,6 @@ namespace maskx.AzurePolicy.Services
             PolicyContext policyContext = null;
             foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
             {
-
                 foreach (var resource in doc.RootElement.GetProperty("resources").EnumerateArray())
                 {
                     (continueNext, policyContext) = Validate(new PolicyContext()
@@ -89,7 +88,8 @@ namespace maskx.AzurePolicy.Services
                         PolicyDefinition = policy.PolicyDefinition,
                         Parameters = policy.Parameter,
                         Resource = resource.GetRawText(),
-                        EvaluatingPhase = EvaluatingPhase.Validation
+                        EvaluatingPhase = EvaluatingPhase.Validation,
+                        RootInput=input
                     }, input);
                     if (!continueNext)
                         break;
@@ -104,7 +104,7 @@ namespace maskx.AzurePolicy.Services
                 PolicyContext = policyContext
             };
         }
-        private (bool ContinueNext, PolicyContext Policy) Validate(DeploymentOrchestrationInput input, PolicyDefinition policyDefinition, string parameters)
+        private (bool ContinueNext, PolicyContext Policy) Validate(DeploymentOrchestrationInput root,DeploymentOrchestrationInput input, PolicyDefinition policyDefinition, string parameters)
         {
             using var doc = JsonDocument.Parse(input.TemplateContent);
             var context = new Dictionary<string, object>();
@@ -117,7 +117,8 @@ namespace maskx.AzurePolicy.Services
                     PolicyDefinition = policyDefinition,
                     Parameters = parameters,
                     Resource = resource.GetRawText(),
-                    EvaluatingPhase = EvaluatingPhase.Validation
+                    EvaluatingPhase = EvaluatingPhase.Validation,
+                    RootInput=root
                 };
                 (continueNext, policyContext) = Validate(policyContext, input);
                 if (!continueNext)
@@ -138,7 +139,7 @@ namespace maskx.AzurePolicy.Services
                    new Dictionary<string, object>() {
                         {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,input }
                    }).ToString();
-                var (ContinueNext, Policy) = Validate(input.Deployments[n],policyContext.PolicyDefinition,policyContext.Parameters);
+                var (ContinueNext, Policy) = Validate(policyContext.RootInput,input.Deployments[n],policyContext.PolicyDefinition,policyContext.Parameters);
                 if (!ContinueNext)
                     return (false, Policy);
             }
@@ -161,7 +162,8 @@ namespace maskx.AzurePolicy.Services
                         ParentType = t,
                         Parameters = policyContext.Parameters,
                         PolicyDefinition = policyContext.PolicyDefinition,
-                        Resource = r.GetRawText()
+                        Resource = r.GetRawText(),
+                        RootInput=policyContext.RootInput
                     };
                     var (ContinueNext, Policy) = Validate(policyCxt, input);
                     if (!ContinueNext)
@@ -170,16 +172,7 @@ namespace maskx.AzurePolicy.Services
             }
             if (_Logical.Evaluate(policyContext, input))
             {
-                if (string.Equals(policyContext.PolicyDefinition.EffectName, Effect.DisabledEffectName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return (false, policyContext);
-                }
-                else if (string.Equals(policyContext.PolicyDefinition.EffectName, Effect.DenyEffectName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return (false, policyContext);
-                };
-                this._Effect.Run(policyContext, input);
-                return (true, policyContext);
+                return (this._Effect.Run(policyContext, input), policyContext);
             }
             return (true, null);
         }

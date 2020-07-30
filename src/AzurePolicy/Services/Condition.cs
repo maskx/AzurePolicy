@@ -1,15 +1,13 @@
-﻿using maskx.AzurePolicy.Extensions;
-using maskx.AzurePolicy.Functions;
-using maskx.ARMOrchestration.Functions;
+﻿using maskx.ARMOrchestration.Functions;
 using maskx.ARMOrchestration.Orchestrations;
+using maskx.AzurePolicy.Extensions;
+using maskx.AzurePolicy.Functions;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
-using System.Text.RegularExpressions;
-using System.Security.Cryptography;
-using System.Globalization;
 
 namespace maskx.AzurePolicy.Services
 {
@@ -19,6 +17,7 @@ namespace maskx.AzurePolicy.Services
         private readonly PolicyFunction _PolicyFunction;
         private readonly ARMFunctions _ARMFunctions;
         private readonly IServiceProvider _ServiceProvider;
+        
         public Condition(IServiceProvider serviceProvider, PolicyFunction function, ARMFunctions aRMFunctions)
         {
             this._PolicyFunction = function;
@@ -26,145 +25,338 @@ namespace maskx.AzurePolicy.Services
             this._ServiceProvider = serviceProvider;
             InitBuiltInCodition();
         }
+        
+        #region BuiltInCodition
+        private bool EqualsMethod(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!EqualsMethod(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+        }
+        private bool NotEquals(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!NotEquals(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+        }
+        private bool Like(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!Like(item, right))
+                        return false;
+                }
+                return true;
+            }
+            if (right.ToString().Equals("*"))
+            {
+                return true;
+            }
+            var s = right.ToString().Split('*');
+            var r = left.ToString();
+            if (s.Length < 2)
+            {
+                throw new Exception("value field not contains *");
+            }
+            else if (s.Length > 2)
+            {
+                throw new Exception("value field only contains one *");
+            }
+            if (string.IsNullOrEmpty(s[0]))
+            {
+                return (r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase));
+            }
+            else if (string.IsNullOrEmpty(s[1]))
+            {
+                return r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                return (r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase) && r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase));
+            }
+        }
+        private bool NotLike(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!NotLike(item, right))
+                        return false;
+                }
+                return true;
+            }
+            if (right.ToString().Equals("*"))
+            {
+                return false;
+            }
+            var s = right.ToString().Split('*');
+            var r = left.ToString();
+            if (s.Length < 2)
+            {
+                throw new Exception("value field not contains *");
+            }
+            else if (s.Length > 2)
+            {
+                throw new Exception("value field only contains one *");
+            }
+            if (string.IsNullOrEmpty(s[0]))
+            {
+                return (!r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase));
+            }
+            else if (string.IsNullOrEmpty(s[1]))
+            {
+                return !r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                return ((!r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase)) || (!r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase)));
+            }
+        }
+        private bool Match(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!Match(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return ConditionMatch(left.ToString(), right.ToString(), false);
+        }
+        private bool MatchInsensitively(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!MatchInsensitively(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return ConditionMatch(left.ToString(), right.ToString(), true);
+        }
+        private bool NotMatch(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!NotMatch(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return !ConditionMatch(left.ToString(), right.ToString(), false);
+        }
+        private bool NotMatchInsensitively(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!NotMatchInsensitively(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return !ConditionMatch(left.ToString(), right.ToString(), true);
+        }
+        private bool ContainsMethod(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!ContainsMethod(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return left.ToString().Contains(right.ToString());
+        }
+        private bool NotContains(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!NotContains(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return !left.ToString().Contains(right.ToString());
+        }
+        private bool In(object left ,object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!In(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return (right as JsonValue).Contains(left);
+        }
+        private bool NotIn(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!NotIn(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return !(right as JsonValue).Contains(left);
+        }
+        private bool ContainsKey(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!ContainsKey(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return (left as JsonValue).Contains(right);
+        }
+        private bool NotContainsKey(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!NotContainsKey(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return !(left as JsonValue).Contains(right);
+        }
+        private bool Less(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!Less(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return ConditionCompare(left.ToString(), right.ToString(), "less");
+        }
+        private bool LessOrEquals(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!LessOrEquals(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return ConditionCompare(left.ToString(), right.ToString(), "lessOrEquals");
+        }
+        private bool Greater(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!Greater(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return ConditionCompare(left.ToString(), right.ToString(), "greater");
+        }
+        private bool GreaterOrEquals(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!GreaterOrEquals(item, right))
+                        return false;
+                }
+                return true;
+            }
+            return ConditionCompare(left.ToString(), right.ToString(), "greaterOrEquals");
+        }
+        private bool Exists(object left, object right)
+        {
+            if (left is List<object> list)
+            {
+                foreach (var item in list)
+                {
+                    if (!Exists(item, right))
+                        return false;
+                }
+                return true;
+            }
+            var leftResult = (left != null) && ((int)left != -1);
+            bool rightResult = (right.ToString().ToLower()) switch
+            {
+                "true" => true,
+                "false" => false,
+                _ => throw new Exception("input is not a valid bool string"),
+            };
+            return (leftResult == rightResult);
+        }
         private void InitBuiltInCodition()
         {
-            this._Conditions.Add("equals", (left, right) =>
-            {
-                return string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
-            });
-            this._Conditions.Add("notEquals", (left, right) =>
-            {
-                return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
-            });
+            this._Conditions.Add("equals", EqualsMethod);
+            this._Conditions.Add("notEquals", NotEquals);
             // When using the like and notLike conditions, you provide a wildcard * in the value. The value shouldn't have more than one wildcard *.
-            this._Conditions.Add("like", (left, right) =>
-            {
-                if (right.ToString().Equals("*"))
-                {
-                    return true;
-                }
-                var s = right.ToString().Split('*');
-                var r = left.ToString();
-                if (s.Length < 2)
-                {
-                    throw new Exception("value field not contains *");
-                }
-                else if (s.Length > 2)
-                {
-                    throw new Exception("value field only contains one *");
-                }
-                if (string.IsNullOrEmpty(s[0]))
-                {
-                    return (r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase));
-                }
-                else if (string.IsNullOrEmpty(s[1]))
-                {
-                    return r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase);
-                }
-                else
-                {
-                    return (r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase) && r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase));
-                }
-            });
-            this._Conditions.Add("notLike", (left, right) =>
-            {
-                if (right.ToString().Equals("*"))
-                {
-                    return false;
-                }
-                var s = right.ToString().Split('*');
-                var r = left.ToString();
-                if (s.Length < 2)
-                {
-                    throw new Exception("value field not contains *");
-                }
-                else if (s.Length > 2)
-                {
-                    throw new Exception("value field only contains one *");
-                }
-                if (string.IsNullOrEmpty(s[0]))
-                {
-                    return (!r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase));
-                }
-                else if (string.IsNullOrEmpty(s[1]))
-                {
-                    return !r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase);
-                }
-                else
-                {
-                    return ((!r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase)) || (!r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase)));
-                }
-            });
+            this._Conditions.Add("like", Like);
+            this._Conditions.Add("notLike", NotLike);
             // When using the match and notMatch conditions, provide # to match a digit, ? for a letter, . to match any character, and any other character to match that actual character. While match and notMatch are case-sensitive, all other conditions that evaluate a stringValue are case-insensitive. Case-insensitive alternatives are available in matchInsensitively and notMatchInsensitively.
-            this._Conditions.Add("match", (left, right) =>
-            {
-                return ConditionMatch(left.ToString(), right.ToString(), false);
-            });
-            this._Conditions.Add("matchInsensitively", (left, right) =>
-            {
-                return ConditionMatch(left.ToString(), right.ToString(), true);
-            });
-            this._Conditions.Add("notMatch", (left, right) =>
-            {
-                return !ConditionMatch(left.ToString(), right.ToString(), false);
-            });
-            this._Conditions.Add("notMatchInsensitively", (left, right) =>
-            {
-                return !ConditionMatch(left.ToString(), right.ToString(), true);
-            });
-            this._Conditions.Add("contains", (left, right) =>
-            {
-                return (left as List<object>).Contains(right);
-            });
-            this._Conditions.Add("notContains", (left, right) =>
-            {
-                return !((left as List<object>).Contains(right));
-            });
-            this._Conditions.Add("in", (left, right) =>
-            {
-                return (right as JsonValue).Contains(left);
-            });
-            this._Conditions.Add("notIn", (left, right) =>
-            {
-                return !(right as JsonValue).Contains(left);
-            });
-            this._Conditions.Add("containsKey", (left, right) =>
-            {
-                return (left as JsonValue).Contains(right);
-            });
-            this._Conditions.Add("notContainsKey", (left, right) =>
-            {
-                return !(left as JsonValue).Contains(right);
-            });
-            this._Conditions.Add("less", (left, right) =>
-            {
-                return ConditionCompare(left.ToString(), right.ToString(), "less");
-            });
-            this._Conditions.Add("lessOrEquals", (left, right) =>
-            {
-                return ConditionCompare(left.ToString(), right.ToString(), "lessOrEquals");
-            });
-            this._Conditions.Add("greater", (left, right) =>
-            {
-                return ConditionCompare(left.ToString(), right.ToString(), "greater");
-            });
-            this._Conditions.Add("greaterOrEquals", (left, right) =>
-            {
-                return ConditionCompare(left.ToString(), right.ToString(), "greaterOrEquals");
-            });
-            this._Conditions.Add("exists", (left, right) =>
-            {
-                var leftResult = (left!=null)&&((int)left!=-1);
-                var rightResult = false;
-                rightResult = (right.ToString().ToLower()) switch
-                {
-                    "true" => true,
-                    "false" => false,
-                    _ => throw new Exception("input is not a valid bool string"),
-                };
-                return (leftResult == rightResult);
-            });
+            this._Conditions.Add("match", Match);
+            this._Conditions.Add("matchInsensitively", MatchInsensitively);
+            this._Conditions.Add("notMatch", NotMatch);
+            this._Conditions.Add("notMatchInsensitively", NotMatchInsensitively);
+            this._Conditions.Add("contains", ContainsMethod);
+            this._Conditions.Add("notContains", NotContains);
+            this._Conditions.Add("in", In);
+            this._Conditions.Add("notIn", NotIn);
+            this._Conditions.Add("containsKey", ContainsKey);
+            this._Conditions.Add("notContainsKey", NotContainsKey);
+            this._Conditions.Add("less", Less);
+            this._Conditions.Add("lessOrEquals", LessOrEquals);
+            this._Conditions.Add("greater", Greater);
+            this._Conditions.Add("greaterOrEquals", GreaterOrEquals);
+            this._Conditions.Add("exists", Exists);
         }
+        #endregion
+
         public bool Evaluate(JsonElement element, Dictionary<string, object> context)
         {
             #region note
@@ -195,7 +387,7 @@ namespace maskx.AzurePolicy.Services
                     {
 
                         path = path.Remove(0, countFiled.ToString().Length);
-                        if(path.StartsWith('.'))
+                        if (path.StartsWith('.'))
                         {
                             path = path.Remove(0, 1);
                         }
@@ -233,7 +425,8 @@ namespace maskx.AzurePolicy.Services
                     else
                         left = r;
                 }
-                else if (_Conditions.TryGetValue(item.Name, out func))                {
+                else if (_Conditions.TryGetValue(item.Name, out func))
+                {
                     right = item.Value.GetEvaluatedValue(_ARMFunctions, context);
                 }
             }
@@ -241,7 +434,6 @@ namespace maskx.AzurePolicy.Services
                 throw new Exception("cannot find conditions");
             return func(left, right);
         }
-       
 
         public int Count(JsonElement element, Dictionary<string, object> context)
         {
@@ -270,12 +462,12 @@ namespace maskx.AzurePolicy.Services
             return d.Count();
         }
 
-        private bool ConditionMatch(string left,string right,bool insensitively)
+        private bool ConditionMatch(string left, string right, bool insensitively)
         {
             if (left.Length != right.Length)
                 return false;
             int matched = 0;
-            for(int i=0;i<right.Length;)
+            for (int i = 0; i < right.Length;)
             {
                 if (matched > left.Length)
                     return false;
@@ -316,16 +508,16 @@ namespace maskx.AzurePolicy.Services
 
         }
 
-        private bool ConditionCompare(string left,string right,string operation)
+        private bool ConditionCompare(string left, string right, string operation)
         {
             bool leftParse = false;
             bool rightParse = false;
             DateTime leftTime = new DateTime();
             DateTime rightTime = new DateTime();
 
-            leftParse=DateTime.TryParseExact(left, "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture,DateTimeStyles.None,out leftTime);
+            leftParse = DateTime.TryParseExact(left, "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture, DateTimeStyles.None, out leftTime);
             rightParse = DateTime.TryParseExact(right, "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture, DateTimeStyles.None, out rightTime);
-            if(((leftParse==false)&&(rightParse==true))|| ((leftParse==true) && (rightParse==false)))
+            if (((leftParse == false) && (rightParse == true)) || ((leftParse == true) && (rightParse == false)))
             {
                 throw new Exception($"field and input of condition can not both parse to datetime,field:{left},input:{right}");
             }
@@ -341,8 +533,8 @@ namespace maskx.AzurePolicy.Services
                     _ => throw new NotImplementedException(),
                 };
             }
-             leftParse = false;
-             rightParse = false;
+            leftParse = false;
+            rightParse = false;
             Int32 leftInt = new Int32();
             Int32 rightInt = new Int32();
 
