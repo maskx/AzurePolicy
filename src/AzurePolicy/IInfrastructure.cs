@@ -1,4 +1,5 @@
 ﻿using maskx.ARMOrchestration.ARMTemplate;
+using maskx.ARMOrchestration.Orchestrations;
 using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Services;
 using System.Collections.Generic;
@@ -14,5 +15,6 @@ namespace maskx.AzurePolicy
         BuiltinServiceType BuitinServiceTypes { get; set; }
         BuiltinPathSegment BuiltinPathSegment { get; set; }
         bool ResourceIsExisting(string type, string name, string resourceGroup, string scope, string condition);
+        void Deploy(DeploymentOrchestrationInput input);
     }
 }

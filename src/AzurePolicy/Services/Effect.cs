@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 
 namespace maskx.AzurePolicy.Services
@@ -19,7 +20,7 @@ namespace maskx.AzurePolicy.Services
         public const string DenyEffectName = "deny";
         public const string ModifyEffectName = "modify";
         public const string DeployIfNotExistsEffectName = "deployifnotexists";
-        public const string DenyIfNotExistsName = "denyifnotexists";
+        public const string DenyIfNotExistsEffectName = "denyifnotexists";
         public const int DefaultPriority = 600;
 
         private readonly Dictionary<string, Func<string, Dictionary<string, object>, bool>> _Effects = new Dictionary<string, Func<string, Dictionary<string, object>, bool>>();
@@ -48,18 +49,98 @@ namespace maskx.AzurePolicy.Services
         {
             this._EffectPriority.Add(DisabledEffectName, 0);
             this._EffectPriority.Add(ModifyEffectName, 100);
-            this._EffectPriority.Add(DeployIfNotExistsEffectName, 200);
-            this._EffectPriority.Add(DenyEffectName, 900);
-            this._EffectPriority.Add(DenyIfNotExistsName, 900);
+            this._EffectPriority.Add(DenyEffectName, 800);
+            this._EffectPriority.Add(DenyIfNotExistsEffectName, 800);
+            this._EffectPriority.Add(DeployIfNotExistsEffectName, 900);
 
             this._Effects.Add(DisabledEffectName, (detail, context) => false);
 
             //  use modify effect insteade append effect
             // https://docs.microsoft.com/en-us/azure/governance/policy/concepts/effects#modify
             this._Effects.Add(ModifyEffectName, Modify);
-            this._Effects.Add(DeployIfNotExistsEffectName, (detail, context) => { return true; });
+            this._Effects.Add(DeployIfNotExistsEffectName, DeployIfNotExists);
             this._Effects.Add(DenyEffectName, (detai, context) => false);
-            this._Effects.Add(DenyIfNotExistsName, ResourceIsExists);
+            this._Effects.Add(DenyIfNotExistsEffectName, ResourceIsExists);
+        }
+        private bool DeployIfNotExists(string detail, Dictionary<string, object> context)
+        {
+            if (ResourceIsExists(detail, context))
+                return true;
+            using var doc = JsonDocument.Parse(detail);
+
+            if (doc.RootElement.TryGetProperty("deployment", out JsonElement deploymentE))
+                throw new Exception("cannot find deployment property in DeployIfNotExists effect");
+
+            if (deploymentE.TryGetProperty("properties", out JsonElement propertiesE))
+                throw new Exception("cannot find prperties property in deployment node in DeployIfNotExists effect");
+
+            string template = null, parameters = null;
+
+            if (propertiesE.TryGetProperty("template", out JsonElement templateE))
+                template = templateE.GetRawText();
+            else
+                throw new Exception("cannot find template property in deployment node in DeployIfNotExists effect");
+            if (propertiesE.TryGetProperty("parameters", out JsonElement parametersE))
+                parameters = parametersE.ExpandObject(context, _PolicyFunction);
+
+            string deploymentScope = "ResourceGroup";
+            if (doc.RootElement.TryGetProperty("deploymentScope ", out JsonElement deploymentScopeE))
+                deploymentScope = _PolicyFunction.Evaluate(deploymentScopeE.GetString(), context).ToString();
+
+            ARMOrchestration.DeploymentMode mode = ARMOrchestration.DeploymentMode.Incremental;
+            if (propertiesE.TryGetProperty("mode", out JsonElement modeE))
+            {
+                mode = (ARMOrchestration.DeploymentMode)Enum.Parse(typeof(ARMOrchestration.DeploymentMode), _PolicyFunction.Evaluate(modeE.GetString(), context).ToString());
+            }
+
+            var policyContext = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
+            var deployContext = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput;
+
+            string subscriptionId = null, managementGroupId = null, resourceGroup = null;
+
+            if (deploymentScope == "ResourceGroup")
+            {
+                if (propertiesE.TryGetProperty("resourceGroup", out JsonElement resourceGroupE))
+                    resourceGroup = this._PolicyFunction.Evaluate(resourceGroupE.GetString(), context).ToString();
+                else
+                    resourceGroup = deployContext.ResourceGroup;
+            }
+
+            if (propertiesE.TryGetProperty("subscriptionId", out JsonElement subscriptionIdE))
+                subscriptionId = _PolicyFunction.Evaluate(subscriptionIdE.GetString(), context).ToString();
+            else
+                subscriptionId = deployContext.SubscriptionId;
+
+            if (propertiesE.TryGetProperty("managementGroupId", out JsonElement managementGroupIdE))
+                managementGroupId = _PolicyFunction.Evaluate(managementGroupIdE.GetString(), context).ToString();
+            else
+                managementGroupId = deployContext.ManagementGroupId;
+
+            var (groupId, groupType, hierarchyId) = _ARMInfrastructure.GetGroupInfo(managementGroupId, subscriptionId, resourceGroup);
+
+
+            var input = new DeploymentOrchestrationInput()
+            {
+                Mode = mode,
+                RootId = policyContext.RootInput.DeploymentId,
+                DependsOn = new List<string> { policyContext.RootInput.GetResourceId(_ARMInfrastructure) },
+                ApiVersion = deployContext.ApiVersion,
+                DeploymentName =  $"{deployContext.DeploymentName}_DeployIfNotExists_{Guid.NewGuid()}",
+                DeploymentId = Guid.NewGuid().ToString("N"),
+                TemplateContent = template,
+                Parameters = parameters,
+                SubscriptionId = subscriptionId,
+                ResourceGroup = resourceGroup,
+                CorrelationId = deployContext.CorrelationId,
+                GroupId = groupId,
+                GroupType = groupType,
+                HierarchyId = hierarchyId,
+                TenantId = deployContext.TenantId,
+                CreateByUserId = deployContext.CreateByUserId,
+                LastRunUserId = deployContext.CreateByUserId
+            };
+            _PolicyInfrastructure.Deploy(input);
+            return true;
         }
 
         #region ResourceIfNotExists

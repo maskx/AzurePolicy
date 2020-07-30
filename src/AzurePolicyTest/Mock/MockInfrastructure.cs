@@ -1,4 +1,5 @@
 ﻿using maskx.ARMOrchestration.ARMTemplate;
+using maskx.ARMOrchestration.Orchestrations;
 using maskx.AzurePolicy;
 using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Services;
@@ -49,6 +50,11 @@ namespace AzurePolicyTest.Mock
             if (name == "networkInterfaceName1")
                 return true;
             return false;
+        }
+
+        public void Deploy(DeploymentOrchestrationInput input)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
