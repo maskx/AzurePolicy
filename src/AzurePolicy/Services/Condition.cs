@@ -356,7 +356,7 @@ namespace maskx.AzurePolicy.Services
             this._Conditions.Add("exists", Exists);
         }
         #endregion
-
+ 
         public bool Evaluate(JsonElement element, Dictionary<string, object> context)
         {
             #region note

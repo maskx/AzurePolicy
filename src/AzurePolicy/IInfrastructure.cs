@@ -20,7 +20,7 @@ namespace maskx.AzurePolicy
         Template GetARMTemplateByScope(string scope);
         BuiltinServiceType BuitinServiceTypes { get; set; }
         BuiltinPathSegment BuiltinPathSegment { get; set; }
-        bool ResourceIsExisting(string type, string name, string resourceGroup, string scope, string condition);
+        bool ResourceIsExisting(string type, string name, string resourceGroup, string scope, string condition,Dictionary<string,object> context);
         void Deploy(DeploymentOrchestrationInput input);
     }
 }

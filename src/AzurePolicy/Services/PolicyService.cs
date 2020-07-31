@@ -31,6 +31,7 @@ namespace maskx.AzurePolicy.Services
             this._Effect = effect;
             this._ARMInfrastructure = aRMInfrastructure;
         }
+        #region Validate
 
         /// <summary>
         /// run at create resource phase
@@ -177,6 +178,10 @@ namespace maskx.AzurePolicy.Services
             return (true, null);
         }
 
+        #endregion
+
+        #region Remedy
+
         /// <summary>
         /// a task to repair exist resourc
         /// </summary>
@@ -184,6 +189,10 @@ namespace maskx.AzurePolicy.Services
         {
             // question? deny effect should remove the resource?
         }
+
+        #endregion
+
+        #region Audit
         /// <summary>
         /// a task to generate a compliance report
         /// </summary>
@@ -262,6 +271,6 @@ namespace maskx.AzurePolicy.Services
             }
             return true;
         }
-
+        #endregion
     }
 }

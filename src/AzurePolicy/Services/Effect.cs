@@ -7,9 +7,7 @@ using maskx.AzurePolicy.Functions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 
 namespace maskx.AzurePolicy.Services
@@ -180,7 +178,7 @@ namespace maskx.AzurePolicy.Services
                 existenceCondition = ExistenceConditionE;
             if (FindInTemplate(type, name, resourceGroupName, existenceCondition, context))
                 return true;
-            if (_PolicyInfrastructure.ResourceIsExisting(type, name, resourceGroupName, existenceScope, existenceCondition.HasValue ? existenceCondition.Value.ExpandObject(context, _PolicyFunction) : null))
+            if (_PolicyInfrastructure.ResourceIsExisting(type, name, resourceGroupName, existenceScope, existenceCondition.HasValue ? existenceCondition.Value.GetRawText() : null,context))
                 return true;
             return false;
         }
