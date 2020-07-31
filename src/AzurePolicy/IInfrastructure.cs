@@ -18,8 +18,6 @@ namespace maskx.AzurePolicy
         /// <returns>when write audit success, should return true, when write fail should be false</returns>
         bool Audit(string detail,Dictionary<string, object> context);
         Template GetARMTemplateByScope(string scope);
-        BuiltinServiceType BuitinServiceTypes { get; set; }
-        BuiltinPathSegment BuiltinPathSegment { get; set; }
         bool ResourceIsExisting(string type, string name, string resourceGroup, string scope, string condition,Dictionary<string,object> context);
         void Deploy(DeploymentOrchestrationInput input);
     }

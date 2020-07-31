@@ -41,14 +41,14 @@ namespace maskx.AzurePolicy.Services
             var scope = "";
             if (!string.IsNullOrEmpty(input.SubscriptionId))
             {
-                scope = $"/{_Infrastructure.BuiltinPathSegment.Subscription}/{input.SubscriptionId}";
+                scope = $"/{_ARMInfrastructure.BuiltinPathSegment.Subscription}/{input.SubscriptionId}";
             }
             if (!string.IsNullOrEmpty(input.ManagementGroupId))
             {
-                scope = $"/{_Infrastructure.BuiltinPathSegment.ManagementGroup}/{input.ManagementGroupId}";
+                scope = $"/{_ARMInfrastructure.BuiltinPathSegment.ManagementGroup}/{input.ManagementGroupId}";
             }
             if (!string.IsNullOrEmpty(input.ResourceGroup))
-                scope += $"/{_Infrastructure.BuiltinPathSegment.ResourceGroup}/{input.ResourceGroup}";
+                scope += $"/{_ARMInfrastructure.BuiltinPathSegment.ResourceGroup}/{input.ResourceGroup}";
 
             var policies = this._Infrastructure.GetPolicyDefinitions(scope, EvaluatingPhase.Validation);
             var initiatives = this._Infrastructure.GetPolicyInitiatives(scope, EvaluatingPhase.Validation);

@@ -15,9 +15,7 @@ namespace AzurePolicyTest.Mock
         {
             this._Logical = logical;
         }
-        public BuiltinServiceType BuitinServiceTypes { get; set; } = new BuiltinServiceType();
-        public BuiltinPathSegment BuiltinPathSegment { get; set; } = new BuiltinPathSegment();
-
+        
         public List<(PolicyDefinition PolicyDefinition, string Parameter)> GetPolicyDefinitions(string scope, EvaluatingPhase evaluatingPhase)
         {
             var rtv = new List<(PolicyDefinition PolicyDefinition, string Parameter)>();
