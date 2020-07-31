@@ -17,6 +17,7 @@ namespace maskx.AzurePolicy.Services
         private readonly PolicyFunction _PolicyFunction;
         private readonly ARMFunctions _ARMFunction;
         private readonly Effect _Effect;
+
         public PolicyService(Logical logical,
             IInfrastructure infrastructure,
             PolicyFunction function,
@@ -31,6 +32,7 @@ namespace maskx.AzurePolicy.Services
             this._Effect = effect;
             this._ARMInfrastructure = aRMInfrastructure;
         }
+
         #region Validate
 
         /// <summary>
@@ -49,7 +51,8 @@ namespace maskx.AzurePolicy.Services
             }
             if (!string.IsNullOrEmpty(input.ResourceGroup))
                 scope += $"/{_ARMInfrastructure.BuiltinPathSegment.ResourceGroup}/{input.ResourceGroup}";
-
+            if (string.IsNullOrEmpty(scope))
+                throw new ArgumentException("input not set scope");
             var policies = this._Infrastructure.GetPolicyDefinitions(scope, EvaluatingPhase.Validation);
             var initiatives = this._Infrastructure.GetPolicyInitiatives(scope, EvaluatingPhase.Validation);
             foreach (var item in initiatives)
@@ -57,7 +60,6 @@ namespace maskx.AzurePolicy.Services
                 policies.AddRange(PolicyInitiative.ExpandePolicyDefinitions(item.PolicyInitiative, item.Parameter, _PolicyFunction));
             }
             return Validate(input, policies);
-
         }
 
         public ValidationResult Validate(DeploymentOrchestrationInput input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
@@ -90,7 +92,7 @@ namespace maskx.AzurePolicy.Services
                         Parameters = policy.Parameter,
                         Resource = resource.GetRawText(),
                         EvaluatingPhase = EvaluatingPhase.Validation,
-                        RootInput=input
+                        RootInput = input
                     }, input);
                     if (!continueNext)
                         break;
@@ -98,14 +100,12 @@ namespace maskx.AzurePolicy.Services
                 if (!continueNext)
                     break;
             }
-            return new ValidationResult()
-            {
-                Result = continueNext,
-                DeploymentOrchestrationInput = input,
-                PolicyContext = policyContext
-            };
+            validationResult.Result = continueNext;
+            validationResult.PolicyContext = policyContext;
+            return validationResult;
         }
-        private (bool ContinueNext, PolicyContext Policy) Validate(DeploymentOrchestrationInput root,DeploymentOrchestrationInput input, PolicyDefinition policyDefinition, string parameters)
+
+        private (bool ContinueNext, PolicyContext Policy) Validate(DeploymentOrchestrationInput root, DeploymentOrchestrationInput input, PolicyDefinition policyDefinition, string parameters)
         {
             using var doc = JsonDocument.Parse(input.TemplateContent);
             var context = new Dictionary<string, object>();
@@ -119,7 +119,7 @@ namespace maskx.AzurePolicy.Services
                     Parameters = parameters,
                     Resource = resource.GetRawText(),
                     EvaluatingPhase = EvaluatingPhase.Validation,
-                    RootInput=root
+                    RootInput = root
                 };
                 (continueNext, policyContext) = Validate(policyContext, input);
                 if (!continueNext)
@@ -127,6 +127,7 @@ namespace maskx.AzurePolicy.Services
             }
             return (continueNext, policyContext);
         }
+
         private (bool ContinueNext, PolicyContext Policy) Validate(PolicyContext policyContext, DeploymentOrchestrationInput input)
         {
             using var doc = JsonDocument.Parse(policyContext.Resource);
@@ -140,11 +141,9 @@ namespace maskx.AzurePolicy.Services
                    new Dictionary<string, object>() {
                         {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,input }
                    }).ToString();
-                var (ContinueNext, Policy) = Validate(policyContext.RootInput,input.Deployments[n],policyContext.PolicyDefinition,policyContext.Parameters);
-                if (!ContinueNext)
-                    return (false, Policy);
+                return Validate(policyContext.RootInput, input.Deployments[n], policyContext.PolicyDefinition, policyContext.Parameters);
             }
-            else if (resource.TryGetProperty("resources", out JsonElement resources))
+            if (resource.TryGetProperty("resources", out JsonElement resources))
             {
                 string n = this._ARMFunction.Evaluate(resource.GetProperty("name").GetString(),
                     new Dictionary<string, object>() {
@@ -164,7 +163,7 @@ namespace maskx.AzurePolicy.Services
                         Parameters = policyContext.Parameters,
                         PolicyDefinition = policyContext.PolicyDefinition,
                         Resource = r.GetRawText(),
-                        RootInput=policyContext.RootInput
+                        RootInput = policyContext.RootInput
                     };
                     var (ContinueNext, Policy) = Validate(policyCxt, input);
                     if (!ContinueNext)
@@ -178,7 +177,7 @@ namespace maskx.AzurePolicy.Services
             return (true, null);
         }
 
-        #endregion
+        #endregion Validate
 
         #region Remedy
 
@@ -187,12 +186,55 @@ namespace maskx.AzurePolicy.Services
         /// </summary>
         public void Remedy(string scope)
         {
-            // question? deny effect should remove the resource?
+            var policies = this._Infrastructure.GetPolicyDefinitions(scope, EvaluatingPhase.Remediation);
+            var initiatives = this._Infrastructure.GetPolicyInitiatives(scope, EvaluatingPhase.Remediation);
+            foreach (var item in initiatives)
+            {
+                policies.AddRange(PolicyInitiative.ExpandePolicyDefinitions(item.PolicyInitiative, item.Parameter, _PolicyFunction));
+            }
+            if (policies.Count == 0)
+                return;
+            Remedy(scope, policies);
         }
 
-        #endregion
+        public void Remedy(string scope, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
+        {
+            var resources = this._Infrastructure.GetResourcesByScope(scope);
+            DeploymentOrchestrationInput input = new DeploymentOrchestrationInput()
+            {
+            };
+            var context = new Dictionary<string, object>();
+            foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
+            {
+                foreach (var resource in resources)
+                {
+                    var pc = new PolicyContext()
+                    {
+                        PolicyDefinition = policy.PolicyDefinition,
+                        Parameters = policy.Parameter,
+                        Resource = resource.ToString(),
+                        EvaluatingPhase = EvaluatingPhase.Remediation
+                    };
+                    if (_Logical.Evaluate(pc, input))
+                    {
+                        // TODO: 如果一个Remediation执行了，意味着资源发生了改变。
+                        // 后续的policy应该在这个改变的基础上进行
+                        // 因此，需要将 Effect 改变后的 Resource 存入 DeploymentOrchestrationInput中
+                        // 这样后续的 Policy 才会 检测修正后的Resource
+
+                        //this._Infrastructure.Audit(pc.PolicyDefinition.EffectDetail, new Dictionary<string, object>() {
+                        //    {Functions.ContextKeys.POLICY_CONTEXT,pc },
+                        //    {Functions.ContextKeys.DEPLOY_CONTEXT,input }
+                        //});
+                    }
+                }
+            }
+        }
+
+        #endregion Remedy
 
         #region Audit
+
         /// <summary>
         /// a task to generate a compliance report
         /// </summary>
@@ -200,77 +242,46 @@ namespace maskx.AzurePolicy.Services
         {
             // deny effect should report an non-compliant
             // https://docs.microsoft.com/en-us/azure/governance/policy/concepts/effects#layering-policy-definitions
-            var d = this._Infrastructure.GetPolicyDefinitions(scope, EvaluatingPhase.Auditing);
-            var i = this._Infrastructure.GetPolicyInitiatives(scope, EvaluatingPhase.Auditing);
-            foreach (var item in i)
+            var policies = this._Infrastructure.GetPolicyDefinitions(scope, EvaluatingPhase.Auditing);
+            var initiatives = this._Infrastructure.GetPolicyInitiatives(scope, EvaluatingPhase.Auditing);
+            foreach (var item in initiatives)
             {
-                d.AddRange(PolicyInitiative.ExpandePolicyDefinitions(item.PolicyInitiative, item.Parameter, _PolicyFunction));
+                policies.AddRange(PolicyInitiative.ExpandePolicyDefinitions(item.PolicyInitiative, item.Parameter, _PolicyFunction));
             }
-            if (d.Count == 0)
+            if (policies.Count == 0)
                 return;
-            Audit(scope, d);
+            Audit(scope, policies);
         }
 
         public void Audit(string scope, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {
-            var template = this._Infrastructure.GetARMTemplateByScope(scope);
+            var resources = this._Infrastructure.GetResourcesByScope(scope);
             DeploymentOrchestrationInput input = new DeploymentOrchestrationInput()
             {
-                Template = template,
-                TemplateContent = template.ToString()
             };
-            using var doc = JsonDocument.Parse(input.TemplateContent);
-            var deniedPolicy = new List<PolicyDefinition>();
             var context = new Dictionary<string, object>();
             foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
             {
-                if (string.Equals(policy.PolicyDefinition.EffectName, Effect.DisabledEffectName, StringComparison.OrdinalIgnoreCase))
-                    continue;
-                foreach (var resource in doc.RootElement.GetProperty("resources").EnumerateArray())
+                foreach (var resource in resources)
                 {
-                    Audit(new PolicyContext()
+                    var pc = new PolicyContext()
                     {
                         PolicyDefinition = policy.PolicyDefinition,
                         Parameters = policy.Parameter,
-                        Resource = resource.GetRawText(),
+                        Resource = resource.ToString(),
                         EvaluatingPhase = EvaluatingPhase.Auditing
-                    }, input);
+                    };
+                    if (_Logical.Evaluate(pc, input))
+                    {
+                        this._Infrastructure.Audit(pc.PolicyDefinition.EffectDetail, new Dictionary<string, object>() {
+                            {Functions.ContextKeys.POLICY_CONTEXT,pc },
+                            {Functions.ContextKeys.DEPLOY_CONTEXT,input }
+                        });
+                    }
                 }
             }
         }
 
-        private bool Audit(PolicyContext policyContext, DeploymentOrchestrationInput deploymentContext)
-        {
-            using var doc = JsonDocument.Parse(policyContext.Resource);
-            var resource = doc.RootElement;
-            if (resource.TryGetProperty("resources", out JsonElement resources))
-            {
-                string n = this._ARMFunction.Evaluate(resource.GetProperty("name").GetString(),
-                    new Dictionary<string, object>() {
-                        {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,deploymentContext }
-                    }).ToString();
-                if (!string.IsNullOrEmpty(policyContext.NamePath))
-                    n = policyContext.NamePath + "/" + n;
-                foreach (var r in resources.EnumerateArray())
-                {
-                    var policyCxt = new PolicyContext()
-                    {
-                        NamePath = n,
-                        Parameters = policyContext.Parameters,
-                        PolicyDefinition = policyContext.PolicyDefinition,
-                        Resource = r.GetRawText()
-                    };
-                    Audit(policyCxt, deploymentContext);
-                }
-            }
-            if (_Logical.Evaluate(policyContext, deploymentContext))
-            {
-                if (string.Equals(policyContext.PolicyDefinition.EffectName, Effect.DisabledEffectName, StringComparison.OrdinalIgnoreCase))
-                    return false;
-                return this._Effect.Run(policyContext, deploymentContext);
-            }
-            return true;
-        }
-        #endregion
+        #endregion Audit
     }
 }

@@ -56,6 +56,7 @@ namespace maskx.AzurePolicy.Extensions
             }
             return null;
         }
+
         public static JsonElement GetElement(this JsonElement self, string path)
         {
             JsonElement e = self;
@@ -68,6 +69,7 @@ namespace maskx.AzurePolicy.Extensions
             }
             return e;
         }
+
         public static JsonElement GetElementDot(this JsonElement self, string path)
         {
             JsonElement e = self;
@@ -80,6 +82,7 @@ namespace maskx.AzurePolicy.Extensions
             }
             return e;
         }
+
         public static JsonElement GetElementDotWithoutException(this JsonElement self, string path)
         {
             JsonElement e = self;
@@ -87,11 +90,12 @@ namespace maskx.AzurePolicy.Extensions
             {
                 if (!e.TryGetProperty(p, out e))
                 {
-                    return default;// TODO: 需要测试，当读取path不存在时的行为
+                    return default;
                 }
             }
             return e;
         }
+
         public static List<object> GetElements(this JsonElement self, List<string> path, ARMFunctions functions, Dictionary<string, object> context)
         {
             List<object> list = new List<object>();
@@ -115,7 +119,6 @@ namespace maskx.AzurePolicy.Extensions
             {
                 if (e.TryGetProperty(p, out JsonElement e1))
                 {
-
                     if (path.Count == 0)
                         list.Add(e1.GetEvaluatedValue(functions, context));
                     else
@@ -131,20 +134,25 @@ namespace maskx.AzurePolicy.Extensions
             {
                 case JsonValueKind.String:
                     return functions.Evaluate(self.GetString(), context);
+
                 case JsonValueKind.Number:
                     return self.GetInt32();
+
                 case JsonValueKind.True:
                 case JsonValueKind.False:
                     return self.GetBoolean();
+
                 case JsonValueKind.Object:
                 case JsonValueKind.Array:
                     return new JsonValue(self.GetRawText());
+
                 case JsonValueKind.Null:
                 case JsonValueKind.Undefined:
                 default:
                     return null;
             }
         }
+
         public static string ExpandObject(this JsonElement self, Dictionary<string, object> context, PolicyFunction function)
         {
             using MemoryStream ms = new MemoryStream();
@@ -158,6 +166,5 @@ namespace maskx.AzurePolicy.Extensions
             writer.Flush();
             return Encoding.UTF8.GetString(ms.ToArray());
         }
-
     }
 }
