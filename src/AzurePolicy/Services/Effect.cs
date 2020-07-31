@@ -21,6 +21,8 @@ namespace maskx.AzurePolicy.Services
         public const string ModifyEffectName = "modify";
         public const string DeployIfNotExistsEffectName = "deployifnotexists";
         public const string DenyIfNotExistsEffectName = "denyifnotexists";
+        public const string AuditEffectName = "audit";
+        public const string AuditIfNotExistsEffectName = "auditifnotexists";
         public const int DefaultPriority = 600;
 
         private readonly Dictionary<string, Func<string, Dictionary<string, object>, bool>> _Effects = new Dictionary<string, Func<string, Dictionary<string, object>, bool>>();
@@ -51,16 +53,25 @@ namespace maskx.AzurePolicy.Services
             this._EffectPriority.Add(ModifyEffectName, 100);
             this._EffectPriority.Add(DenyEffectName, 800);
             this._EffectPriority.Add(DenyIfNotExistsEffectName, 800);
-            this._EffectPriority.Add(DeployIfNotExistsEffectName, 900);
+            this._EffectPriority.Add(AuditEffectName, 900);
+            this._EffectPriority.Add(AuditIfNotExistsEffectName, 900);
+            this._EffectPriority.Add(DeployIfNotExistsEffectName, 1000);
+
 
             this._Effects.Add(DisabledEffectName, (detail, context) => false);
-
             //  use modify effect insteade append effect
             // https://docs.microsoft.com/en-us/azure/governance/policy/concepts/effects#modify
-            this._Effects.Add(ModifyEffectName, Modify);
-            this._Effects.Add(DeployIfNotExistsEffectName, DeployIfNotExists);
+            this._Effects.Add(ModifyEffectName, Modify);            
             this._Effects.Add(DenyEffectName, (detai, context) => false);
             this._Effects.Add(DenyIfNotExistsEffectName, ResourceIsExists);
+            this._Effects.Add(AuditEffectName, this._PolicyInfrastructure.Audit);
+            this._Effects.Add(AuditIfNotExistsEffectName, AuditIfNotExists);
+            this._Effects.Add(DeployIfNotExistsEffectName, DeployIfNotExists);
+        }
+        private bool AuditIfNotExists(string detail,Dictionary<string,object> context)
+        {
+            if (ResourceIsExists(detail, context)) return true;
+            return this._PolicyInfrastructure.Audit(detail, context);
         }
         private bool DeployIfNotExists(string detail, Dictionary<string, object> context)
         {

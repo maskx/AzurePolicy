@@ -258,7 +258,7 @@ namespace maskx.AzurePolicy.Services
             {
                 if (string.Equals(policyContext.PolicyDefinition.EffectName, Effect.DisabledEffectName, StringComparison.OrdinalIgnoreCase))
                     return false;
-                _Infrastructure.Audit(policyContext);
+                return this._Effect.Run(policyContext, deploymentContext);
             }
             return true;
         }

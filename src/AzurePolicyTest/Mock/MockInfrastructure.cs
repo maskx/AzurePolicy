@@ -37,12 +37,6 @@ namespace AzurePolicyTest.Mock
             return new Template();
         }
 
-        public void Audit(PolicyContext policyContext)
-        {
-           
-
-        }
-
         public bool ResourceIsExisting(string type, string name, string resourceGroup, string scope, string condition)
         {
             if (name == "ExistsInInfrastructure")
@@ -53,6 +47,11 @@ namespace AzurePolicyTest.Mock
         }
 
         public void Deploy(DeploymentOrchestrationInput input)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool Audit(string detail, Dictionary<string, object> context)
         {
             throw new System.NotImplementedException();
         }
