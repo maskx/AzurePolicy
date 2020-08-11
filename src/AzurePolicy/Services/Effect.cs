@@ -55,22 +55,23 @@ namespace maskx.AzurePolicy.Services
             this._EffectPriority.Add(AuditIfNotExistsEffectName, 900);
             this._EffectPriority.Add(DeployIfNotExistsEffectName, 1000);
 
-
             this._Effects.Add(DisabledEffectName, (detail, context) => false);
             //  use modify effect insteade append effect
             // https://docs.microsoft.com/en-us/azure/governance/policy/concepts/effects#modify
-            this._Effects.Add(ModifyEffectName, Modify);            
+            this._Effects.Add(ModifyEffectName, Modify);
             this._Effects.Add(DenyEffectName, (detai, context) => false);
             this._Effects.Add(DenyIfNotExistsEffectName, ResourceIsExists);
             this._Effects.Add(AuditEffectName, this._PolicyInfrastructure.Audit);
             this._Effects.Add(AuditIfNotExistsEffectName, AuditIfNotExists);
             this._Effects.Add(DeployIfNotExistsEffectName, DeployIfNotExists);
         }
-        private bool AuditIfNotExists(string detail,Dictionary<string,object> context)
+
+        private bool AuditIfNotExists(string detail, Dictionary<string, object> context)
         {
             if (ResourceIsExists(detail, context)) return true;
             return this._PolicyInfrastructure.Audit(detail, context);
         }
+
         private bool DeployIfNotExists(string detail, Dictionary<string, object> context)
         {
             if (ResourceIsExists(detail, context))
@@ -127,14 +128,13 @@ namespace maskx.AzurePolicy.Services
 
             var (groupId, groupType, hierarchyId) = _ARMInfrastructure.GetGroupInfo(managementGroupId, subscriptionId, resourceGroup);
 
-
             var input = new DeploymentOrchestrationInput()
             {
                 Mode = mode,
                 RootId = policyContext.RootInput.DeploymentId,
                 DependsOn = new List<string> { policyContext.RootInput.GetResourceId(_ARMInfrastructure) },
                 ApiVersion = deployContext.ApiVersion,
-                DeploymentName =  $"{deployContext.DeploymentName}_DeployIfNotExists_{Guid.NewGuid()}",
+                DeploymentName = $"{deployContext.DeploymentName}_DeployIfNotExists_{Guid.NewGuid()}",
                 DeploymentId = Guid.NewGuid().ToString("N"),
                 TemplateContent = template,
                 Parameters = parameters,
@@ -178,7 +178,7 @@ namespace maskx.AzurePolicy.Services
                 existenceCondition = ExistenceConditionE;
             if (FindInTemplate(type, name, resourceGroupName, existenceCondition, context))
                 return true;
-            if (_PolicyInfrastructure.ResourceIsExisting(type, name, resourceGroupName, existenceScope, existenceCondition.HasValue ? existenceCondition.Value.GetRawText() : null,context))
+            if (_PolicyInfrastructure.ResourceIsExisting(type, name, resourceGroupName, existenceScope, existenceCondition.HasValue ? existenceCondition.Value.GetRawText() : null, context))
                 return true;
             return false;
         }
@@ -192,6 +192,8 @@ namespace maskx.AzurePolicy.Services
                 if (r.Type != type)
                     return false;
                 if (!string.IsNullOrEmpty(name) && r.Name != name)
+                    return false;
+                if (!r.Condition)
                     return false;
                 if (!condition.HasValue)
                     return true;
@@ -231,7 +233,7 @@ namespace maskx.AzurePolicy.Services
             return false;
         }
 
-        #endregion
+        #endregion ResourceIfNotExists
 
         #region Modify
 
@@ -250,20 +252,22 @@ namespace maskx.AzurePolicy.Services
                     case "addOrReplace":
                         ModifyAddOrReplaceOperation(properties, item, context);
                         break;
+
                     case "Add":
                         ModifyAddOperation(properties, item, context);
                         break;
+
                     case "Remove":
                         ModifyRemoveOperation(properties, item, context);
                         break;
+
                     default:
                         break;
                 }
-
             }
             policyCxt.Resource = resource.ToString();
             var template = JObject.Parse(input.TemplateContent);
-            // modify resource information in DeploymentOrchestrationInput 
+            // modify resource information in DeploymentOrchestrationInput
             var r = GetResourceByPath(template["resources"] as JArray,
                 policyCxt.NamePath.Split('/').Append(resource["name"].ToString()).ToArray());
             r.Replace(resource);
@@ -315,14 +319,12 @@ namespace maskx.AzurePolicy.Services
             var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
             JToken value = JToken.Parse(operation.GetProperty("value").GetRawText());
             properties.AddOrRepleace(GetPathArray(field), value);
-
         }
 
         private void ModifyRemoveOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
         {
             var field = _PolicyFunction.Evaluate(operation.GetProperty("field").ToString(), context).ToString();
             properties.RemoveToken(GetPathArray(field));
-
         }
 
         private string[] GetPathArray(string path)
@@ -334,7 +336,6 @@ namespace maskx.AzurePolicy.Services
             var span = path.AsSpan();
             for (int i = 0; i < span.Length; i++)
             {
-
                 if (span[i] == '\\')
                 {
                     i++;
@@ -362,7 +363,7 @@ namespace maskx.AzurePolicy.Services
             return paths.ToArray();
         }
 
-        #endregion
+        #endregion Modify
 
         public void SetEffect(string name, Func<string, Dictionary<string, object>, bool> func)
         {

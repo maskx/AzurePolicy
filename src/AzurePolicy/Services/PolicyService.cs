@@ -133,6 +133,18 @@ namespace maskx.AzurePolicy.Services
             using var doc = JsonDocument.Parse(policyContext.Resource);
             var resource = doc.RootElement;
             string t = resource.GetProperty("type").GetString();
+            if (resource.TryGetProperty("condition", out JsonElement conditionE))
+            {
+                bool condition = true;
+                if (conditionE.ValueKind == JsonValueKind.False)
+                    condition = false;
+                else if (conditionE.ValueKind == JsonValueKind.String)
+                    condition = (bool)this._ARMFunction.Evaluate(conditionE.GetString(),
+                                    new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, input } }
+                                    );
+                if (!condition)
+                    return (true, null);
+            }
 
             // nest deployment
             if (t.Equals(_ARMInfrastructure.BuiltinServiceTypes.Deployments, StringComparison.OrdinalIgnoreCase))
