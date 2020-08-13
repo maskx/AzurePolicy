@@ -8,10 +8,12 @@ namespace AzurePolicyTest
     public class ConditionTest
     {
         private readonly PolicyServiceFixture fixture;
+
         public ConditionTest(PolicyServiceFixture fixture)
         {
             this.fixture = fixture;
         }
+
         [Fact(DisplayName = "equals")]
         public void ConditionEquals()
         {
@@ -22,9 +24,9 @@ namespace AzurePolicyTest
                 TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull( rtv.PolicyContext);
+            Assert.NotNull(rtv.PolicyContext);
         }
-     
+
         [Fact(DisplayName = "notEquals")]
         public void NotEquals()
         {
@@ -37,6 +39,7 @@ namespace AzurePolicyTest
             Assert.True(rtv.Result);
             Assert.Null(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "like")]
         public void Like()
         {
@@ -49,6 +52,7 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "notLike")]
         public void NotLike()
         {
@@ -60,8 +64,8 @@ namespace AzurePolicyTest
             });
             Assert.True(rtv.Result);
             Assert.Null(rtv.PolicyContext);
-
         }
+
         [Fact(DisplayName = "in")]
         public void In()
         {
@@ -74,6 +78,20 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
+        [Fact(DisplayName = "inWithField")]
+        public void InWithField()
+        {
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            {
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "Condition_InWithField",
+                TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
+            });
+            Assert.False(rtv.Result);
+            Assert.NotNull(rtv.PolicyContext);
+        }
+
         [Fact(DisplayName = "notIn")]
         public void NotIn()
         {
@@ -86,6 +104,7 @@ namespace AzurePolicyTest
             Assert.True(rtv.Result);
             Assert.Null(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "match")]
         public void ConditionMatch()
         {
@@ -98,6 +117,7 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "notMatch")]
         public void NotMatch()
         {
@@ -110,6 +130,7 @@ namespace AzurePolicyTest
             Assert.True(rtv.Result);
             Assert.Null(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "matchInsensitively")]
         public void ConditionMatchInsensitively()
         {
@@ -122,6 +143,7 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "notMatchInsensitively")]
         public void NotMatchInsensitively()
         {
@@ -134,6 +156,7 @@ namespace AzurePolicyTest
             Assert.True(rtv.Result);
             Assert.Null(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "contains")]
         public void Contains()
         {
@@ -146,6 +169,7 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "notContains")]
         public void NotContains()
         {
@@ -158,6 +182,7 @@ namespace AzurePolicyTest
             Assert.True(rtv.Result);
             Assert.Null(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "less")]
         public void Less()
         {
@@ -170,6 +195,7 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "greater")]
         public void Greater()
         {
@@ -182,6 +208,7 @@ namespace AzurePolicyTest
             Assert.True(rtv.Result);
             Assert.Null(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "lessOrEquals")]
         public void LessOrEquals()
         {
@@ -194,6 +221,7 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "greaterOrEquals")]
         public void GreaterOrEquals()
         {
@@ -206,6 +234,7 @@ namespace AzurePolicyTest
             Assert.True(rtv.Result);
             Assert.Null(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "containsKey")]
         public void ContainsKey()
         {
@@ -218,6 +247,7 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "notContainsKey")]
         public void NotContainsKey()
         {
@@ -230,6 +260,7 @@ namespace AzurePolicyTest
             Assert.True(rtv.Result);
             Assert.Null(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "exists")]
         public void Exists()
         {

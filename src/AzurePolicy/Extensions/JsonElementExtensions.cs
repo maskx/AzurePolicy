@@ -96,12 +96,16 @@ namespace maskx.AzurePolicy.Extensions
             return e;
         }
 
-        public static List<object> GetElements(this JsonElement self, List<string> path, ARMFunctions functions, Dictionary<string, object> context)
+        public static List<object> GetElements(this JsonElement self, List<string> searchPath, ARMFunctions functions, Dictionary<string, object> context)
         {
             List<object> list = new List<object>();
             JsonElement e = self;
-            var p = path[0];
-            path.RemoveAt(0);
+            List<string> path = new List<string>();
+            var p = searchPath[0];
+            for (int i = 1; i < searchPath.Count; i++)
+            {
+                path.Add(searchPath[i]);
+            }
             if (p.EndsWith("[*]"))
             {
                 if (e.TryGetProperty(p.Remove(p.Length - 3), out JsonElement e2))
@@ -129,6 +133,31 @@ namespace maskx.AzurePolicy.Extensions
         }
 
         public static object GetEvaluatedValue(this JsonElement self, ARMFunctions functions, Dictionary<string, object> context)
+        {
+            switch (self.ValueKind)
+            {
+                case JsonValueKind.String:
+                    return functions.Evaluate(self.GetString(), context);
+
+                case JsonValueKind.Number:
+                    return self.GetInt32();
+
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                    return self.GetBoolean();
+
+                case JsonValueKind.Object:
+                case JsonValueKind.Array:
+                    return new JsonValue(self.GetRawText());
+
+                case JsonValueKind.Null:
+                case JsonValueKind.Undefined:
+                default:
+                    return null;
+            }
+        }
+
+        public static object GetEvaluatedValue(this JsonElement self, PolicyFunction functions, Dictionary<string, object> context)
         {
             switch (self.ValueKind)
             {

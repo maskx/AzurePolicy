@@ -17,7 +17,7 @@ namespace maskx.AzurePolicy.Services
         private readonly PolicyFunction _PolicyFunction;
         private readonly ARMFunctions _ARMFunctions;
         private readonly IServiceProvider _ServiceProvider;
-        
+
         public Condition(IServiceProvider serviceProvider, PolicyFunction function, ARMFunctions aRMFunctions)
         {
             this._PolicyFunction = function;
@@ -25,8 +25,9 @@ namespace maskx.AzurePolicy.Services
             this._ServiceProvider = serviceProvider;
             InitBuiltInCodition();
         }
-        
+
         #region BuiltInCodition
+
         private bool EqualsMethod(object left, object right)
         {
             if (left is List<object> list)
@@ -40,6 +41,7 @@ namespace maskx.AzurePolicy.Services
             }
             return string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
         }
+
         private bool NotEquals(object left, object right)
         {
             if (left is List<object> list)
@@ -53,6 +55,7 @@ namespace maskx.AzurePolicy.Services
             }
             return !string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
         }
+
         private bool Like(object left, object right)
         {
             if (left is List<object> list)
@@ -91,6 +94,7 @@ namespace maskx.AzurePolicy.Services
                 return (r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase) && r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase));
             }
         }
+
         private bool NotLike(object left, object right)
         {
             if (left is List<object> list)
@@ -129,6 +133,7 @@ namespace maskx.AzurePolicy.Services
                 return ((!r.StartsWith(s[0], StringComparison.OrdinalIgnoreCase)) || (!r.EndsWith(s[1], StringComparison.OrdinalIgnoreCase)));
             }
         }
+
         private bool Match(object left, object right)
         {
             if (left is List<object> list)
@@ -142,6 +147,7 @@ namespace maskx.AzurePolicy.Services
             }
             return ConditionMatch(left.ToString(), right.ToString(), false);
         }
+
         private bool MatchInsensitively(object left, object right)
         {
             if (left is List<object> list)
@@ -155,6 +161,7 @@ namespace maskx.AzurePolicy.Services
             }
             return ConditionMatch(left.ToString(), right.ToString(), true);
         }
+
         private bool NotMatch(object left, object right)
         {
             if (left is List<object> list)
@@ -168,6 +175,7 @@ namespace maskx.AzurePolicy.Services
             }
             return !ConditionMatch(left.ToString(), right.ToString(), false);
         }
+
         private bool NotMatchInsensitively(object left, object right)
         {
             if (left is List<object> list)
@@ -181,6 +189,7 @@ namespace maskx.AzurePolicy.Services
             }
             return !ConditionMatch(left.ToString(), right.ToString(), true);
         }
+
         private bool ContainsMethod(object left, object right)
         {
             if (left is List<object> list)
@@ -194,6 +203,7 @@ namespace maskx.AzurePolicy.Services
             }
             return left.ToString().Contains(right.ToString());
         }
+
         private bool NotContains(object left, object right)
         {
             if (left is List<object> list)
@@ -207,8 +217,10 @@ namespace maskx.AzurePolicy.Services
             }
             return !left.ToString().Contains(right.ToString());
         }
-        private bool In(object left ,object right)
+
+        private bool In(object left, object right)
         {
+            if (left == null || right == null) return false;
             if (left is List<object> list)
             {
                 foreach (var item in list)
@@ -218,10 +230,20 @@ namespace maskx.AzurePolicy.Services
                 }
                 return true;
             }
-            return (right as JsonValue).Contains(left);
+            if (right is List<object> rList)
+            {
+                return rList.Contains(left);
+            }
+            if (right is JsonValue jv)
+            {
+                return jv.Contains(left);
+            }
+            return false;
         }
+
         private bool NotIn(object left, object right)
         {
+            if (left == null || right == null) return true;
             if (left is List<object> list)
             {
                 foreach (var item in list)
@@ -231,8 +253,17 @@ namespace maskx.AzurePolicy.Services
                 }
                 return true;
             }
-            return !(right as JsonValue).Contains(left);
+            if (right is List<object> rList)
+            {
+                return !rList.Contains(left);
+            }
+            if (right is JsonValue jv)
+            {
+                return !jv.Contains(left);
+            }
+            return true;
         }
+
         private bool ContainsKey(object left, object right)
         {
             if (left is List<object> list)
@@ -246,6 +277,7 @@ namespace maskx.AzurePolicy.Services
             }
             return (left as JsonValue).Contains(right);
         }
+
         private bool NotContainsKey(object left, object right)
         {
             if (left is List<object> list)
@@ -259,6 +291,7 @@ namespace maskx.AzurePolicy.Services
             }
             return !(left as JsonValue).Contains(right);
         }
+
         private bool Less(object left, object right)
         {
             if (left is List<object> list)
@@ -272,6 +305,7 @@ namespace maskx.AzurePolicy.Services
             }
             return ConditionCompare(left.ToString(), right.ToString(), "less");
         }
+
         private bool LessOrEquals(object left, object right)
         {
             if (left is List<object> list)
@@ -285,6 +319,7 @@ namespace maskx.AzurePolicy.Services
             }
             return ConditionCompare(left.ToString(), right.ToString(), "lessOrEquals");
         }
+
         private bool Greater(object left, object right)
         {
             if (left is List<object> list)
@@ -298,6 +333,7 @@ namespace maskx.AzurePolicy.Services
             }
             return ConditionCompare(left.ToString(), right.ToString(), "greater");
         }
+
         private bool GreaterOrEquals(object left, object right)
         {
             if (left is List<object> list)
@@ -311,6 +347,7 @@ namespace maskx.AzurePolicy.Services
             }
             return ConditionCompare(left.ToString(), right.ToString(), "greaterOrEquals");
         }
+
         private bool Exists(object left, object right)
         {
             if (left is List<object> list)
@@ -331,6 +368,7 @@ namespace maskx.AzurePolicy.Services
             };
             return (leftResult == rightResult);
         }
+
         private void InitBuiltInCodition()
         {
             this._Conditions.Add("equals", EqualsMethod);
@@ -355,12 +393,14 @@ namespace maskx.AzurePolicy.Services
             this._Conditions.Add("greaterOrEquals", GreaterOrEquals);
             this._Conditions.Add("exists", Exists);
         }
-        #endregion
- 
+
+        #endregion BuiltInCodition
+
         public bool Evaluate(JsonElement element, Dictionary<string, object> context)
         {
             #region note
-            //left is field calculated result;right is the value of input for condition. eg: 
+
+            //left is field calculated result;right is the value of input for condition. eg:
             /*
              *  "policyRule": {
                    "if": {
@@ -372,7 +412,9 @@ namespace maskx.AzurePolicy.Services
                             }
                  }
              */
-            #endregion
+
+            #endregion note
+
             object left = null;
             object right = null;
             Func<object, object, bool> func = null;
@@ -385,7 +427,6 @@ namespace maskx.AzurePolicy.Services
                     var path = this._PolicyFunction.Evaluate(item.Value.GetString(), context).ToString();
                     if (context.TryGetValue(Functions.ContextKeys.COUNT_FIELD, out object countFiled))
                     {
-
                         path = path.Remove(0, countFiled.ToString().Length);
                         if (path.StartsWith('.'))
                         {
@@ -427,7 +468,7 @@ namespace maskx.AzurePolicy.Services
                 }
                 else if (_Conditions.TryGetValue(item.Name, out func))
                 {
-                    right = item.Value.GetEvaluatedValue(_ARMFunctions, context);
+                    right = item.Value.GetEvaluatedValue(_PolicyFunction, context);
                 }
             }
             if (func == null)
@@ -455,7 +496,6 @@ namespace maskx.AzurePolicy.Services
                         {Functions.ContextKeys.COUNT_ELEMENT,e },
                         {Functions.ContextKeys.COUNT_FIELD,path }
                     });
-
                 }).Count();
             }
 
@@ -504,8 +544,6 @@ namespace maskx.AzurePolicy.Services
                 }
             }
             return (matched == left.Length);
-
-
         }
 
         private bool ConditionCompare(string left, string right, string operation)
