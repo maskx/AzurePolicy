@@ -587,6 +587,7 @@ namespace maskx.AzurePolicy.Functions
             #endregion Numeric
 
             #region Policy
+
             Functions.Add("parameters", (args, cxt) =>
             {
                 var par1 = args.Parameters[0].Evaluate(cxt).ToString();
@@ -611,9 +612,9 @@ namespace maskx.AzurePolicy.Functions
                         {
                             throw new Exception($"ARM Template does not define the parameter:{par1}");
                         }
-                        if (ele.TryGetProperty("defaultValue", out JsonElement defValue))
+                        if (ele.TryGetProperty("value", out JsonElement valueE))
                         {
-                            args.Result = JsonValue.GetElementValue(defValue);
+                            args.Result = JsonValue.GetElementValue(valueE);
                         }
                     }
                     else
@@ -629,7 +630,6 @@ namespace maskx.AzurePolicy.Functions
                             args.Result = JsonValue.GetElementValue(defValue);
                         }
                     }
-
                 }
                 if (args.Result is string s)
                     args.Result = Evaluate(s, cxt);
@@ -656,7 +656,8 @@ namespace maskx.AzurePolicy.Functions
                 int numberOfDaysToAdd = (int)pars[1];
                 args.Result = dateTime.AddDays(numberOfDaysToAdd).ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture);
             });
-            #endregion
+
+            #endregion Policy
         }
 
         public object Evaluate(string function, Dictionary<string, object> context)
@@ -681,7 +682,7 @@ namespace maskx.AzurePolicy.Functions
             }
             return function;
         }
-       
+
         public object Field(string fieldPath, PolicyContext policyContext, DeploymentContext deployDontext)
         {
             using var doc = JsonDocument.Parse(policyContext.Resource);
