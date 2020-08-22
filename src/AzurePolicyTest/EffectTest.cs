@@ -8,11 +8,12 @@ namespace AzurePolicyTest
     public class EffectTest
     {
         private readonly PolicyServiceFixture fixture;
+
         public EffectTest(PolicyServiceFixture fixture)
         {
             this.fixture = fixture;
         }
-        
+
         [Fact(DisplayName = "Disabled")]
         public void Disabled()
         {
@@ -20,12 +21,12 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Effect_Disabled",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
-        
+
         [Fact(DisplayName = "Deny")]
         public void Deny()
         {
@@ -33,7 +34,7 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Effect_Deny",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
@@ -46,10 +47,11 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "DenyIfNotExists_ExistsInTemplate",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.True(rtv.Result);
         }
+
         [Fact(DisplayName = "DenyIfNotExists_ExistsInInfrastructure")]
         public void DenyIfNotExists_ExistsInInfrastructure()
         {
@@ -57,10 +59,11 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "DenyIfNotExists_ExistsInInfrastructure",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.True(rtv.Result);
         }
+
         [Fact(DisplayName = "DenyIfNotExists_ExistsInTemplateWithCondition")]
         public void DenyIfNotExists_ExistsInTemplateWithCondition()
         {
@@ -68,10 +71,11 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "DenyIfNotExists_ExistsInTemplateWithCondition",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.True(rtv.Result);
         }
+
         [Fact(DisplayName = "DenyIfNotExists_ExistsInInfrastructureWithCondition")]
         public void DenyIfNotExists_ExistsInInfrastructureWithCondition()
         {
@@ -79,7 +83,7 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "DenyIfNotExists_ExistsInInfrastructureWithCondition",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.True(rtv.Result);
         }

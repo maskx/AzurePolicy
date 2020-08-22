@@ -17,13 +17,15 @@ namespace maskx.AzurePolicy.Services
         private readonly PolicyFunction _PolicyFunction;
         private readonly ARMFunctions _ARMFunction;
         private readonly Effect _Effect;
+        private readonly IServiceProvider _ServiceProvider;
 
         public PolicyService(Logical logical,
             IInfrastructure infrastructure,
             PolicyFunction function,
             ARMFunctions aRMFunctions,
             Effect effect,
-            ARMOrchestration.IInfrastructure aRMInfrastructure)
+            ARMOrchestration.IInfrastructure aRMInfrastructure,
+            IServiceProvider serviceProvider)
         {
             this._Infrastructure = infrastructure;
             this._Logical = logical;
@@ -31,6 +33,7 @@ namespace maskx.AzurePolicy.Services
             this._ARMFunction = aRMFunctions;
             this._Effect = effect;
             this._ARMInfrastructure = aRMInfrastructure;
+            this._ServiceProvider = serviceProvider;
         }
 
         #region Validate
@@ -40,6 +43,7 @@ namespace maskx.AzurePolicy.Services
         /// </summary>
         public ValidationResult Validate(DeploymentOrchestrationInput input)
         {
+            input.ServiceProvider = _ServiceProvider;
             var scope = "";
             if (!string.IsNullOrEmpty(input.SubscriptionId))
             {
@@ -64,33 +68,26 @@ namespace maskx.AzurePolicy.Services
 
         public ValidationResult Validate(DeploymentOrchestrationInput input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {
-            ValidationResult validationResult = new ValidationResult() { Result = true };
-            try
+            ValidationResult validationResult = new ValidationResult() { Result = true, DeploymentOrchestrationInput = input };
+            var (r, m) = input.Validate(_ServiceProvider);
+            if (!r)
             {
-                validationResult.DeploymentOrchestrationInput = DeploymentOrchestrationInput.Validate(input, _ARMFunction, _ARMInfrastructure);
+                return new ValidationResult() { Result = false, Message = m, DeploymentOrchestrationInput = input };
             }
-            catch (Exception ex)
-            {
-                validationResult.Result = false;
-                validationResult.Message = ex.Message;
-            }
-            if (!validationResult.Result)
-                return validationResult;
             if (policyDefinitions.Count == 0)
                 return validationResult;
-            using var doc = JsonDocument.Parse(input.TemplateContent);
             var context = new Dictionary<string, object>();
             bool continueNext = true;
             PolicyContext policyContext = null;
             foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
             {
-                foreach (var resource in doc.RootElement.GetProperty("resources").EnumerateArray())
+                foreach (var resource in input.EnumerateResource())
                 {
                     (continueNext, policyContext) = Validate(new PolicyContext()
                     {
                         PolicyDefinition = policy.PolicyDefinition,
                         Parameters = policy.Parameter,
-                        Resource = resource.GetRawText(),
+                        Resource = resource,
                         EvaluatingPhase = EvaluatingPhase.Validation,
                         RootInput = input
                     }, input);
@@ -105,88 +102,13 @@ namespace maskx.AzurePolicy.Services
             return validationResult;
         }
 
-        private (bool ContinueNext, PolicyContext Policy) Validate(DeploymentOrchestrationInput root, DeploymentOrchestrationInput input, PolicyDefinition policyDefinition, string parameters)
-        {
-            using var doc = JsonDocument.Parse(input.TemplateContent);
-            var context = new Dictionary<string, object>();
-            bool continueNext = true;
-            PolicyContext policyContext = null;
-            foreach (var resource in doc.RootElement.GetProperty("resources").EnumerateArray())
-            {
-                policyContext = new PolicyContext()
-                {
-                    PolicyDefinition = policyDefinition,
-                    Parameters = parameters,
-                    Resource = resource.GetRawText(),
-                    EvaluatingPhase = EvaluatingPhase.Validation,
-                    RootInput = root
-                };
-                (continueNext, policyContext) = Validate(policyContext, input);
-                if (!continueNext)
-                    break;
-            }
-            return (continueNext, policyContext);
-        }
-
         private (bool ContinueNext, PolicyContext Policy) Validate(PolicyContext policyContext, DeploymentOrchestrationInput input)
         {
-            using var doc = JsonDocument.Parse(policyContext.Resource);
-            var resource = doc.RootElement;
-            string t = resource.GetProperty("type").GetString();
-            if (resource.TryGetProperty("condition", out JsonElement conditionE))
-            {
-                bool condition = true;
-                if (conditionE.ValueKind == JsonValueKind.False)
-                    condition = false;
-                else if (conditionE.ValueKind == JsonValueKind.String)
-                    condition = (bool)this._ARMFunction.Evaluate(conditionE.GetString(),
-                                    new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, input } }
-                                    );
-                if (!condition)
-                    return (true, null);
-            }
-
-            // nest deployment
-            if (t.Equals(_ARMInfrastructure.BuiltinServiceTypes.Deployments, StringComparison.OrdinalIgnoreCase))
-            {
-                string n = this._ARMFunction.Evaluate(resource.GetProperty("name").GetString(),
-                   new Dictionary<string, object>() {
-                        {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,input }
-                   }).ToString();
-                return Validate(policyContext.RootInput, input.Deployments[n], policyContext.PolicyDefinition, policyContext.Parameters);
-            }
-            if (resource.TryGetProperty("resources", out JsonElement resources))
-            {
-                string n = this._ARMFunction.Evaluate(resource.GetProperty("name").GetString(),
-                    new Dictionary<string, object>() {
-                        {ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT,input }
-                    }).ToString();
-                if (!string.IsNullOrEmpty(policyContext.NamePath))
-                {
-                    n = policyContext.NamePath + "/" + n;
-                    t = policyContext.ParentType + "/" + t;
-                }
-                foreach (var r in resources.EnumerateArray())
-                {
-                    var policyCxt = new PolicyContext()
-                    {
-                        NamePath = n,
-                        ParentType = t,
-                        Parameters = policyContext.Parameters,
-                        PolicyDefinition = policyContext.PolicyDefinition,
-                        Resource = r.GetRawText(),
-                        RootInput = policyContext.RootInput
-                    };
-                    var (ContinueNext, Policy) = Validate(policyCxt, input);
-                    if (!ContinueNext)
-                        return (false, Policy);
-                }
-            }
             if (_Logical.Evaluate(policyContext, input))
             {
                 return (this._Effect.Run(policyContext, input), policyContext);
             }
-            return (true, null);
+            return (true, policyContext);
         }
 
         #endregion Validate
@@ -224,7 +146,7 @@ namespace maskx.AzurePolicy.Services
                     {
                         PolicyDefinition = policy.PolicyDefinition,
                         Parameters = policy.Parameter,
-                        Resource = resource.ToString(),
+                        Resource = resource,
                         EvaluatingPhase = EvaluatingPhase.Remediation
                     };
                     if (_Logical.Evaluate(pc, input))
@@ -280,7 +202,7 @@ namespace maskx.AzurePolicy.Services
                     {
                         PolicyDefinition = policy.PolicyDefinition,
                         Parameters = policy.Parameter,
-                        Resource = resource.ToString(),
+                        Resource = resource,
                         EvaluatingPhase = EvaluatingPhase.Auditing
                     };
                     if (_Logical.Evaluate(pc, input))

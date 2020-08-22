@@ -11,22 +11,25 @@ namespace AzurePolicyTest
     public class FieldTest
     {
         private readonly PolicyServiceFixture fixture;
+
         public FieldTest(PolicyServiceFixture fixture)
         {
             this.fixture = fixture;
         }
-        [Fact(DisplayName ="name")]
+
+        [Fact(DisplayName = "name")]
         public void Name()
         {
             var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Field_name",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "type")]
         public void Type()
         {
@@ -34,11 +37,12 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Field_type",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "fullName")]
         public void FullName()
         {
@@ -46,7 +50,7 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Field_fullName",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
+                Template = TestHelper.GetJsonFileContent("json/template/vnet")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);

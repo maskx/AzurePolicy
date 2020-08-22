@@ -8,10 +8,12 @@ namespace AzurePolicyTest
     public class LogicalTest
     {
         private readonly PolicyServiceFixture fixture;
+
         public LogicalTest(PolicyServiceFixture fixture)
         {
             this.fixture = fixture;
         }
+
         [Fact(DisplayName = "not")]
         public void Not()
         {
@@ -19,11 +21,12 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Logical_not",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "allOf")]
         public void AllOf()
         {
@@ -31,11 +34,12 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Logical_allOf",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "anyOf")]
         public void AnyOf()
         {
@@ -43,7 +47,7 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Logical_anyOf",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);

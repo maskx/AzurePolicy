@@ -418,7 +418,7 @@ namespace maskx.AzurePolicy.Services
             object left = null;
             object right = null;
             Func<object, object, bool> func = null;
-            var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentContext;
+            var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
             foreach (var item in element.EnumerateObject())
             {
@@ -480,7 +480,7 @@ namespace maskx.AzurePolicy.Services
         {
             if (!element.TryGetProperty("field", out JsonElement fieldE))
                 return -1;
-            var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentContext;
+            var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
             var path = this._PolicyFunction.Evaluate(fieldE.GetString(), context).ToString();
             if (!(_PolicyFunction.Field(path, policyCxt, deployCxt) is List<object> d))

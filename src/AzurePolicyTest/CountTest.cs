@@ -8,10 +8,12 @@ namespace AzurePolicyTest
     public class CountTest
     {
         private readonly PolicyServiceFixture fixture;
+
         public CountTest(PolicyServiceFixture fixture)
         {
             this.fixture = fixture;
         }
+
         [Fact(DisplayName = "CountNoWhere")]
         public void CountNoWhere()
         {
@@ -19,11 +21,12 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Count_NoWhere",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+                Template = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "CountWhere")]
         public void CountWhere()
         {
@@ -31,11 +34,12 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Count_Where",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+                Template = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "CountWhereWithChildProperty")]
         public void CountWhereWithChildProperty()
         {
@@ -43,7 +47,7 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Count_WhereWithChildProperty",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/count_child_property")
+                Template = TestHelper.GetJsonFileContent("json/template/count_child_property")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);

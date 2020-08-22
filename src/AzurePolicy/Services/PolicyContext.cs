@@ -1,4 +1,5 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration.ARMTemplate;
+using maskx.ARMOrchestration.Orchestrations;
 using maskx.AzurePolicy.Definitions;
 
 namespace maskx.AzurePolicy.Services
@@ -7,9 +8,7 @@ namespace maskx.AzurePolicy.Services
     {
         public PolicyDefinition PolicyDefinition { get; set; }
         public string Parameters { get; set; }
-        public string Resource { get; set; }
-        public string NamePath { get; set; } = string.Empty;
-        public string ParentType { get; set; } = string.Empty;
+        public Resource Resource { get; set; }
         public EvaluatingPhase EvaluatingPhase { get; set; }
         public DeploymentOrchestrationInput RootInput { get; set; }
     }

@@ -10,11 +10,13 @@ namespace maskx.AzurePolicy.Services
     {
         private readonly Dictionary<string, Func<JsonElement, Dictionary<string, object>, bool>> Logicals = new Dictionary<string, Func<JsonElement, Dictionary<string, object>, bool>>();
         private readonly Condition _Condition;
+
         public Logical(Condition condition)
         {
             this._Condition = condition;
             InitBuiltInLogicals();
         }
+
         private void InitBuiltInLogicals()
         {
             this.Logicals.Add("not", (arg, cxt) =>
@@ -56,7 +58,8 @@ namespace maskx.AzurePolicy.Services
             }
             throw new Exception();
         }
-        public bool Evaluate(PolicyContext policyContext, DeploymentContext deploymentContext)
+
+        public bool Evaluate(PolicyContext policyContext, DeploymentOrchestrationInput deploymentContext)
         {
             using var doc = JsonDocument.Parse(policyContext.PolicyDefinition.PolicyRule.If);
             Dictionary<string, object> context = new Dictionary<string, object>()

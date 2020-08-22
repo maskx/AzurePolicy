@@ -64,7 +64,7 @@ namespace AzurePolicyTest.Mock
                 };
                 return resourcesGetByStep1.Any((r) =>
                 {
-                    policyNew.Resource = r.ToString();
+                    policyNew.Resource = r;
                     return this._Logical.Evaluate(policyNew, deployNew);
                 });
             }

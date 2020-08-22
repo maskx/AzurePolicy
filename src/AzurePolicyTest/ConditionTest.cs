@@ -21,10 +21,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_equals",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "notEquals")]
@@ -34,10 +33,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_NotEquals",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Null(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "like")]
@@ -47,10 +45,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_Like",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "notLike")]
@@ -60,10 +57,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_notLike",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Null(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "in")]
@@ -73,10 +69,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_In",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
+                Template = TestHelper.GetJsonFileContent("json/template/vnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "inWithField")]
@@ -86,10 +81,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_InWithField",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
+                Template = TestHelper.GetJsonFileContent("json/template/vnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "notIn")]
@@ -99,10 +93,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_NotIn",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vnet")
+                Template = TestHelper.GetJsonFileContent("json/template/vnet")
             });
             Assert.True(rtv.Result);
-            Assert.Null(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "match")]
@@ -112,10 +105,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_match",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "notMatch")]
@@ -125,10 +117,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_NotMatch",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Null(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "matchInsensitively")]
@@ -138,10 +129,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_matchInsensitively",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "notMatchInsensitively")]
@@ -151,10 +141,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_notMatchInsensitively",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Null(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "contains")]
@@ -164,10 +153,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_Contains",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "notContains")]
@@ -177,10 +165,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_NotContains",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+                Template = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.True(rtv.Result);
-            Assert.Null(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "less")]
@@ -190,10 +177,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_less",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "greater")]
@@ -203,10 +189,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_Greater",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Null(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "lessOrEquals")]
@@ -216,10 +201,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_lessOrEquals",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "greaterOrEquals")]
@@ -229,10 +213,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_GreaterOrEquals",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Null(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "containsKey")]
@@ -242,10 +225,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_containsKey",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "notContainsKey")]
@@ -255,10 +237,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_notContainsKey",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.True(rtv.Result);
-            Assert.Null(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "exists")]
@@ -268,10 +249,9 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_exists",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/subnet")
+                Template = TestHelper.GetJsonFileContent("json/template/subnet")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
     }
 }

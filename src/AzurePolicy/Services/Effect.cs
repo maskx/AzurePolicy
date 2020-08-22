@@ -132,11 +132,11 @@ namespace maskx.AzurePolicy.Services
             {
                 Mode = mode,
                 RootId = policyContext.RootInput.DeploymentId,
-                DependsOn = new List<string> { policyContext.RootInput.GetResourceId(_ARMInfrastructure) },
+                DependsOn = new DependsOnCollection(),
                 ApiVersion = deployContext.ApiVersion,
                 DeploymentName = $"{deployContext.DeploymentName}_DeployIfNotExists_{Guid.NewGuid()}",
                 DeploymentId = Guid.NewGuid().ToString("N"),
-                TemplateContent = template,
+                Template = template,
                 Parameters = parameters,
                 SubscriptionId = subscriptionId,
                 ResourceGroup = resourceGroup,
@@ -148,6 +148,7 @@ namespace maskx.AzurePolicy.Services
                 CreateByUserId = deployContext.CreateByUserId,
                 LastRunUserId = deployContext.CreateByUserId
             };
+            input.DependsOn.Add(policyContext.RootInput.GetResourceId(_ARMInfrastructure), input.Template.Resources);
             _PolicyInfrastructure.Deploy(input);
             return true;
         }
@@ -201,11 +202,9 @@ namespace maskx.AzurePolicy.Services
                         {Functions.ContextKeys.DEPLOY_CONTEXT,deployContext },
                         {Functions.ContextKeys.POLICY_CONTEXT,new PolicyContext(){
                             EvaluatingPhase=policyContext.EvaluatingPhase,
-                            NamePath=policyContext.NamePath,
                             Parameters=policyContext.Parameters,
-                            ParentType=policyContext.ParentType,
                             PolicyDefinition=policyContext.PolicyDefinition,
-                            Resource=r.ToString(),
+                            Resource=r,
                             RootInput=policyContext.RootInput
                         } } });
             }))
@@ -241,7 +240,7 @@ namespace maskx.AzurePolicy.Services
         {
             var input = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
-            var resource = JObject.Parse(policyCxt.Resource);
+            var resource = JObject.Parse(policyCxt.Resource.RawString);
             var properties = resource["properties"] as JObject;
             using var doc = JsonDocument.Parse(detail);
             var operations = doc.RootElement.GetProperty("operations");
@@ -265,26 +264,7 @@ namespace maskx.AzurePolicy.Services
                         break;
                 }
             }
-            policyCxt.Resource = resource.ToString();
-            var template = JObject.Parse(input.TemplateContent);
-            // modify resource information in DeploymentOrchestrationInput
-            var r = GetResourceByPath(template["resources"] as JArray,
-                policyCxt.NamePath.Split('/').Append(resource["name"].ToString()).ToArray());
-            r.Replace(resource);
-            input.TemplateContent = template.ToString(Newtonsoft.Json.Formatting.Indented);
-            var res = Resource.Parse(policyCxt.Resource,
-                new Dictionary<string, object> {
-                        { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, input }
-                },
-                _ARMFunctions,
-                _ARMInfrastructure,
-                policyCxt.NamePath,
-                policyCxt.ParentType);
-            foreach (var rr in res)
-            {
-                input.Template.Resources.Remove(rr);
-                input.Template.Resources.Add(rr);
-            }
+            policyCxt.Resource.RawProperties = properties.ToString();
             return true;
         }
 
@@ -370,7 +350,7 @@ namespace maskx.AzurePolicy.Services
             this._Effects[name] = func;
         }
 
-        public bool Run(PolicyContext policyContext, DeploymentContext deploymentContext)
+        public bool Run(PolicyContext policyContext, DeploymentOrchestrationInput deploymentContext)
         {
             if (!this._Effects.TryGetValue(policyContext.PolicyDefinition.EffectName.ToLower(), out Func<string, Dictionary<string, object>, bool> func))
                 throw new Exception($"cannot find an effect named '{policyContext.PolicyDefinition.EffectName}'");

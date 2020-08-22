@@ -316,11 +316,10 @@ namespace maskx.AzurePolicy.Functions
             });
             Functions.Add("if", (args, cxt) =>
             {
-                var pars = args.EvaluateParameters(cxt);
-                if ((bool)pars[0])
-                    args.Result = pars[1];
+                if ((bool)args.Parameters[0].Evaluate(cxt))
+                    args.Result = args.Parameters[1].Evaluate(cxt);
                 else
-                    args.Result = pars[2];
+                    args.Result = args.Parameters[2].Evaluate(cxt);
             });
             Functions.Add("not", (args, cxt) =>
             {
@@ -645,7 +644,7 @@ namespace maskx.AzurePolicy.Functions
                     throw new Exception("can not find Policy Context");
                 }
                 var policyCxt = poliyContext as PolicyContext;
-                var depolyCxt = depolyContext as DeploymentContext;
+                var depolyCxt = depolyContext as DeploymentOrchestrationInput;
                 var par = args.EvaluateParameters(cxt);
                 args.Result = Field(par[0].ToString(), policyCxt, depolyCxt);
             });
@@ -683,15 +682,15 @@ namespace maskx.AzurePolicy.Functions
             return function;
         }
 
-        public object Field(string fieldPath, PolicyContext policyContext, DeploymentContext deployDontext)
+        public object Field(string fieldPath, PolicyContext policyContext, DeploymentOrchestrationInput deployDontext)
         {
-            using var doc = JsonDocument.Parse(policyContext.Resource);
+            using var doc = JsonDocument.Parse(policyContext.Resource.RawString);
             var root = doc.RootElement;
             var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployDontext } };
             int index = fieldPath.LastIndexOf('/');
             if (index > 0)//property aliases
             {
-                string fullType = GetFullType(policyContext, root);
+                string fullType = policyContext.Resource.Type;
                 string type = fieldPath.Substring(0, index);
                 if (!string.Equals(fullType, type, StringComparison.OrdinalIgnoreCase))
                     return -1;
@@ -701,33 +700,22 @@ namespace maskx.AzurePolicy.Functions
                     return r;
                 return r.First();
             }
+            else if ("name".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return policyContext.Resource.Name.Split('/')[^1];
+            }
             else if ("fullName".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
             {
-                if (!root.TryGetProperty("name", out JsonElement nameE))
-                    throw new Exception("cannot find 'name' property");
-                var name = this._ARMFunctions.Evaluate(nameE.GetString(), context).ToString();
-                if (string.IsNullOrEmpty(policyContext.NamePath))
-                    return name;
-                return $"{policyContext.NamePath}/{name}";
+                return policyContext.Resource.Name;
             }
             else if ("type".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
             {
-                return GetFullType(policyContext, root);
+                return policyContext.Resource.Type;
             }
             var e = root.GetElementDotWithoutException(fieldPath);
             if (e.IsEqual(default))
                 return null;
             return e.GetEvaluatedValue(_ARMFunctions, context);
-        }
-
-        private string GetFullType(PolicyContext policyContext, JsonElement root)
-        {
-            if (!root.TryGetProperty("type", out JsonElement typeE))
-                throw new Exception("cannot find 'type' property");
-            var type = typeE.GetString();
-            if (string.IsNullOrEmpty(policyContext.ParentType))
-                return type;
-            return $"{policyContext.ParentType}/{type}";
         }
     }
 }

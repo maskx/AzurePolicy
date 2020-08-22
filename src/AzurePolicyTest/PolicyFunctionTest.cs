@@ -8,10 +8,12 @@ namespace AzurePolicyTest
     public class PolicyFunctionTest
     {
         private readonly PolicyServiceFixture fixture;
+
         public PolicyFunctionTest(PolicyServiceFixture fixture)
         {
             this.fixture = fixture;
         }
+
         [Fact(DisplayName = "field")]
         public void Field()
         {
@@ -19,11 +21,12 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Function_Field",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/vm")
+                Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "fieldInLength")]
         public void FieldInLength()
         {
@@ -31,11 +34,12 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Function_FieldInLength",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+                Template = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
         [Fact(DisplayName = "addDays")]
         public void AddDays()
         {
@@ -43,7 +47,7 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Function_addDays",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/count")
+                Template = TestHelper.GetJsonFileContent("json/template/count")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);

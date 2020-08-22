@@ -14,6 +14,7 @@ namespace AzurePolicyTest.Mock
         {
             Deployments = "Microsoft.Resources/deployments"
         };
+
         public BuiltinPathSegment BuiltinPathSegment { get; set; } = new BuiltinPathSegment();
         public bool InjectBeforeDeployment { get; set; } = false;
         public bool InjectAfterDeployment { get; set; } = false;
@@ -34,7 +35,7 @@ namespace AzurePolicyTest.Mock
             throw new NotImplementedException();
         }
 
-        public TaskResult List(DeploymentContext context, string resourceId, string apiVersion, string functionValues = "", string value = "")
+        public TaskResult List(DeploymentOrchestrationInput context, string resourceId, string apiVersion, string functionValues = "", string value = "")
         {
             throw new NotImplementedException();
         }
@@ -44,12 +45,12 @@ namespace AzurePolicyTest.Mock
             throw new NotImplementedException();
         }
 
-        public TaskResult Reference(DeploymentContext context, string resourceName, string apiVersion = "", bool full = false)
+        public TaskResult Reference(DeploymentOrchestrationInput context, string resourceName, string apiVersion = "", bool full = false)
         {
             throw new NotImplementedException();
         }
 
-        public TaskResult WhatIf(DeploymentContext context, string resourceName)
+        public TaskResult WhatIf(DeploymentOrchestrationInput context, string resourceName)
         {
             throw new NotImplementedException();
         }

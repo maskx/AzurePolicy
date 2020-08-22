@@ -8,10 +8,12 @@ namespace AzurePolicyTest
     public class PolicyServiceTest
     {
         private readonly PolicyServiceFixture fixture;
+
         public PolicyServiceTest(PolicyServiceFixture fixture)
         {
             this.fixture = fixture;
         }
+
         [Fact(DisplayName = "NestTemplate")]
         public void NestTemplate()
         {
@@ -19,7 +21,7 @@ namespace AzurePolicyTest
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "PolicyService_nestTemplate",
-                TemplateContent = TestHelper.GetJsonFileContent("json/template/nestTemplate")
+                Template = TestHelper.GetJsonFileContent("json/template/nestTemplate")
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
