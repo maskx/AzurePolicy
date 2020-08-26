@@ -131,7 +131,7 @@ namespace maskx.AzurePolicy.Services
             var input = new DeploymentOrchestrationInput()
             {
                 Mode = mode,
-                RootId = policyContext.RootInput.DeploymentId,
+                RootId = policyContext.Resource.Input.DeploymentId,
                 DependsOn = new DependsOnCollection(),
                 ApiVersion = deployContext.ApiVersion,
                 DeploymentName = $"{deployContext.DeploymentName}_DeployIfNotExists_{Guid.NewGuid()}",
@@ -148,7 +148,7 @@ namespace maskx.AzurePolicy.Services
                 CreateByUserId = deployContext.CreateByUserId,
                 LastRunUserId = deployContext.CreateByUserId
             };
-            input.DependsOn.Add(policyContext.RootInput.GetResourceId(_ARMInfrastructure), input.Template.Resources);
+            input.DependsOn.Add(policyContext.Resource.Input.GetResourceId(_ARMInfrastructure), input.Template.Resources);
             _PolicyInfrastructure.Deploy(input);
             return true;
         }
@@ -204,8 +204,7 @@ namespace maskx.AzurePolicy.Services
                             EvaluatingPhase=policyContext.EvaluatingPhase,
                             Parameters=policyContext.Parameters,
                             PolicyDefinition=policyContext.PolicyDefinition,
-                            Resource=r,
-                            RootInput=policyContext.RootInput
+                            Resource=r
                         } } });
             }))
                 return true;
@@ -215,7 +214,7 @@ namespace maskx.AzurePolicy.Services
         private bool FindInTemplate(string type, string name, string rg, JsonElement? condition, Dictionary<string, object> context)
         {
             var policyContext = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
-            var input = policyContext.RootInput;
+            var input = policyContext.Resource.Input;
             if (input.ResourceGroup == rg)
             {
                 if (FindInResourceCollection(input.Template.Resources, type, name, condition, context))

@@ -88,8 +88,7 @@ namespace maskx.AzurePolicy.Services
                         PolicyDefinition = policy.PolicyDefinition,
                         Parameters = policy.Parameter,
                         Resource = resource,
-                        EvaluatingPhase = EvaluatingPhase.Validation,
-                        RootInput = input
+                        EvaluatingPhase = EvaluatingPhase.Validation
                     }, input);
                     if (!continueNext)
                         break;
