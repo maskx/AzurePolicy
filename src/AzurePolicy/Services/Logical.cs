@@ -59,12 +59,11 @@ namespace maskx.AzurePolicy.Services
             throw new Exception();
         }
 
-        public bool Evaluate(PolicyContext policyContext, DeploymentOrchestrationInput deploymentContext)
+        public bool Evaluate(PolicyContext policyContext)
         {
             using var doc = JsonDocument.Parse(policyContext.PolicyDefinition.PolicyRule.If);
             Dictionary<string, object> context = new Dictionary<string, object>()
             {
-                { ContextKeys.DEPLOY_CONTEXT,deploymentContext},
                 { ContextKeys.POLICY_CONTEXT,policyContext }
             };
             return Evaluate(doc.RootElement, context);

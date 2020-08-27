@@ -89,7 +89,7 @@ namespace maskx.AzurePolicy.Services
                         Parameters = policy.Parameter,
                         Resource = resource,
                         EvaluatingPhase = EvaluatingPhase.Validation
-                    }, input);
+                    });
                     if (!continueNext)
                         break;
                 }
@@ -101,11 +101,11 @@ namespace maskx.AzurePolicy.Services
             return validationResult;
         }
 
-        private (bool ContinueNext, PolicyContext Policy) Validate(PolicyContext policyContext, DeploymentOrchestrationInput input)
+        private (bool ContinueNext, PolicyContext Policy) Validate(PolicyContext policyContext)
         {
-            if (_Logical.Evaluate(policyContext, input))
+            if (_Logical.Evaluate(policyContext))
             {
-                return (this._Effect.Run(policyContext, input), policyContext);
+                return (this._Effect.Run(policyContext), policyContext);
             }
             return (true, policyContext);
         }
@@ -148,7 +148,7 @@ namespace maskx.AzurePolicy.Services
                         Resource = resource,
                         EvaluatingPhase = EvaluatingPhase.Remediation
                     };
-                    if (_Logical.Evaluate(pc, input))
+                    if (_Logical.Evaluate(pc))
                     {
                         // TODO: 如果一个Remediation执行了，意味着资源发生了改变。
                         // 后续的policy应该在这个改变的基础上进行
@@ -204,11 +204,10 @@ namespace maskx.AzurePolicy.Services
                         Resource = resource,
                         EvaluatingPhase = EvaluatingPhase.Auditing
                     };
-                    if (_Logical.Evaluate(pc, input))
+                    if (_Logical.Evaluate(pc))
                     {
                         this._Infrastructure.Audit(pc.PolicyDefinition.EffectDetail, new Dictionary<string, object>() {
-                            {Functions.ContextKeys.POLICY_CONTEXT,pc },
-                            {Functions.ContextKeys.DEPLOY_CONTEXT,input }
+                            {Functions.ContextKeys.POLICY_CONTEXT,pc }
                         });
                     }
                 }

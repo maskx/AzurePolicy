@@ -104,7 +104,7 @@ namespace maskx.AzurePolicy.Services
             }
 
             var policyContext = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
-            var deployContext = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput;
+            var deployContext = policyContext.Resource.Input;
 
             string subscriptionId = null, managementGroupId = null, resourceGroup = null;
 
@@ -172,7 +172,7 @@ namespace maskx.AzurePolicy.Services
             if (root.TryGetProperty("resourceGroupName", out JsonElement rgE))
                 resourceGroupName = _PolicyFunction.Evaluate(rgE.GetString(), context).ToString();
             else
-                resourceGroupName = (context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput).ResourceGroup;
+                resourceGroupName = (context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext).Resource.Input.ResourceGroup;
             if (root.TryGetProperty("existenceScope", out JsonElement existenceScopeE))
                 existenceScope = _PolicyFunction.Evaluate(existenceScopeE.GetString(), context).ToString();
             if (root.TryGetProperty("existenceCondition", out JsonElement ExistenceConditionE))
@@ -187,7 +187,7 @@ namespace maskx.AzurePolicy.Services
         private bool FindInResourceCollection(ResourceCollection resources, string type, string name, JsonElement? condition, Dictionary<string, object> context)
         {
             var policyContext = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
-            var deployContext = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput;
+            var deployContext = policyContext.Resource.Input;
             if (resources.Any((r) =>
             {
                 if (r.Type != type)
@@ -199,7 +199,6 @@ namespace maskx.AzurePolicy.Services
                 if (!condition.HasValue)
                     return true;
                 return this._Logical.Evaluate(condition.Value, new Dictionary<string, object>() {
-                        {Functions.ContextKeys.DEPLOY_CONTEXT,deployContext },
                         {Functions.ContextKeys.POLICY_CONTEXT,new PolicyContext(){
                             EvaluatingPhase=policyContext.EvaluatingPhase,
                             Parameters=policyContext.Parameters,
@@ -237,7 +236,6 @@ namespace maskx.AzurePolicy.Services
 
         private bool Modify(string detail, Dictionary<string, object> context)
         {
-            var input = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
             var resource = JObject.Parse(policyCxt.Resource.RawString);
             var properties = resource["properties"] as JObject;
@@ -265,25 +263,6 @@ namespace maskx.AzurePolicy.Services
             }
             policyCxt.Resource.RawProperties = properties.ToString();
             return true;
-        }
-
-        private JObject GetResourceByPath(JArray jarray, string[] path)
-        {
-            JToken rtv = null;
-            JArray children = jarray;
-            foreach (var p in path)
-            {
-                foreach (var child in children)
-                {
-                    if (child["name"].ToString() == p)
-                    {
-                        rtv = child;
-                        children = rtv["resources"] as JArray;
-                        break;
-                    }
-                }
-            }
-            return rtv as JObject;
         }
 
         private void ModifyAddOperation(JObject properties, JsonElement operation, Dictionary<string, object> context)
@@ -349,14 +328,13 @@ namespace maskx.AzurePolicy.Services
             this._Effects[name] = func;
         }
 
-        public bool Run(PolicyContext policyContext, DeploymentOrchestrationInput deploymentContext)
+        public bool Run(PolicyContext policyContext)
         {
             if (!this._Effects.TryGetValue(policyContext.PolicyDefinition.EffectName.ToLower(), out Func<string, Dictionary<string, object>, bool> func))
                 throw new Exception($"cannot find an effect named '{policyContext.PolicyDefinition.EffectName}'");
             return func(policyContext.PolicyDefinition.EffectDetail,
                   new Dictionary<string, object>() {
-                    { Functions.ContextKeys.POLICY_CONTEXT,policyContext},
-                    {Functions.ContextKeys.DEPLOY_CONTEXT,deploymentContext }
+                    { Functions.ContextKeys.POLICY_CONTEXT,policyContext}
                   });
         }
 

@@ -639,14 +639,9 @@ namespace maskx.AzurePolicy.Functions
                 {
                     throw new Exception("can not find Policy Context");
                 }
-                if (!cxt.TryGetValue(ContextKeys.DEPLOY_CONTEXT, out object depolyContext))
-                {
-                    throw new Exception("can not find Policy Context");
-                }
                 var policyCxt = poliyContext as PolicyContext;
-                var depolyCxt = depolyContext as DeploymentOrchestrationInput;
                 var par = args.EvaluateParameters(cxt);
-                args.Result = Field(par[0].ToString(), policyCxt, depolyCxt);
+                args.Result = Field(par[0].ToString(), policyCxt);
             });
             Functions.Add("adddays", (args, cxt) =>
             {
@@ -682,11 +677,11 @@ namespace maskx.AzurePolicy.Functions
             return function;
         }
 
-        public object Field(string fieldPath, PolicyContext policyContext, DeploymentOrchestrationInput deployDontext)
+        public object Field(string fieldPath, PolicyContext policyContext)
         {
             using var doc = JsonDocument.Parse(policyContext.Resource.RawString);
             var root = doc.RootElement;
-            var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployDontext } };
+            var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, policyContext.Resource.Input } };
             int index = fieldPath.LastIndexOf('/');
             if (index > 0)//property aliases
             {

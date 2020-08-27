@@ -58,14 +58,10 @@ namespace AzurePolicyTest.Mock
                     EvaluatingPhase = policyContext.EvaluatingPhase,
                     Parameters = policyContext.Parameters
                 };
-                // 因为 resource 的属性都是不用计算的值，因此不会用到DeploymentOrchestrationInput
-                var deployNew = new DeploymentOrchestrationInput()
-                {
-                };
                 return resourcesGetByStep1.Any((r) =>
                 {
                     policyNew.Resource = r;
-                    return this._Logical.Evaluate(policyNew, deployNew);
+                    return this._Logical.Evaluate(policyNew);
                 });
             }
             return false;

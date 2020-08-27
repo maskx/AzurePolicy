@@ -418,8 +418,9 @@ namespace maskx.AzurePolicy.Services
             object left = null;
             object right = null;
             Func<object, object, bool> func = null;
-            var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
+            var deployCxt = policyCxt.Resource.Input;
+
             foreach (var item in element.EnumerateObject())
             {
                 if ("field".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
@@ -451,7 +452,7 @@ namespace maskx.AzurePolicy.Services
                     }
                     else
                     {
-                        left = _PolicyFunction.Field(path, policyCxt, deployCxt);
+                        left = _PolicyFunction.Field(path, policyCxt);
                     }
                 }
                 else if ("value".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
@@ -480,10 +481,11 @@ namespace maskx.AzurePolicy.Services
         {
             if (!element.TryGetProperty("field", out JsonElement fieldE))
                 return -1;
-            var deployCxt = context[Functions.ContextKeys.DEPLOY_CONTEXT] as DeploymentOrchestrationInput;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
+            var deployCxt = policyCxt.Resource.Input;
+
             var path = this._PolicyFunction.Evaluate(fieldE.GetString(), context).ToString();
-            if (!(_PolicyFunction.Field(path, policyCxt, deployCxt) is List<object> d))
+            if (!(_PolicyFunction.Field(path, policyCxt) is List<object> d))
                 return 0;
             if (element.TryGetProperty("where", out JsonElement whereE))
             {
@@ -491,7 +493,6 @@ namespace maskx.AzurePolicy.Services
                 return d.Where(e =>
                 {
                     return logical.Evaluate(whereE, new Dictionary<string, object>() {
-                        {Functions.ContextKeys.DEPLOY_CONTEXT,deployCxt },
                         {Functions.ContextKeys.POLICY_CONTEXT,policyCxt },
                         {Functions.ContextKeys.COUNT_ELEMENT,e },
                         {Functions.ContextKeys.COUNT_FIELD,path }
