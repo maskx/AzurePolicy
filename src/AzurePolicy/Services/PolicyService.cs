@@ -81,8 +81,10 @@ namespace maskx.AzurePolicy.Services
             PolicyContext policyContext = null;
             foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
             {
-                foreach (var resource in input.EnumerateResource())
+                foreach (var resource in input.EnumerateResource(true, true))
                 {
+                    if (resource.Type == _ARMInfrastructure.BuiltinServiceTypes.Deployments)
+                        continue;
                     (continueNext, policyContext) = Validate(new PolicyContext()
                     {
                         PolicyDefinition = policy.PolicyDefinition,
@@ -95,6 +97,16 @@ namespace maskx.AzurePolicy.Services
                 }
                 if (!continueNext)
                     break;
+
+            }
+            if (continueNext)
+            {
+                foreach (var deploy in input.EnumerateDeployments())
+                {
+                    var vr = Validate(deploy, policyDefinitions);
+                    if (!vr.Result)
+                        return vr;
+                }
             }
             validationResult.Result = continueNext;
             validationResult.PolicyContext = policyContext;

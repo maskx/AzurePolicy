@@ -701,7 +701,7 @@ namespace maskx.AzurePolicy.Functions
             }
             else if ("fullName".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
             {
-                return policyContext.Resource.Name;
+                return policyContext.Resource.FullName;
             }
             else if ("type".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
             {

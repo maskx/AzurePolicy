@@ -148,7 +148,7 @@ namespace maskx.AzurePolicy.Services
                 CreateByUserId = deployContext.CreateByUserId,
                 LastRunUserId = deployContext.CreateByUserId
             };
-            input.DependsOn.Add(policyContext.Resource.Input.GetResourceId(_ARMInfrastructure), input.Template.Resources);
+            input.DependsOn.Add(policyContext.Resource.Input.GetResourceId(_ARMInfrastructure), input);
             _PolicyInfrastructure.Deploy(input);
             return true;
         }
@@ -219,7 +219,7 @@ namespace maskx.AzurePolicy.Services
                 if (FindInResourceCollection(input.Template.Resources, type, name, condition, context))
                     return true;
             }
-            foreach (var d in input.Deployments.Values)
+            foreach (var d in input.EnumerateDeployments())
             {
                 if (d.ResourceGroup == rg)
                 {

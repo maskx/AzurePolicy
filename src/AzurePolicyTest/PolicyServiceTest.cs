@@ -26,5 +26,20 @@ namespace AzurePolicyTest
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
         }
+
+        [Fact(DisplayName = "CopyResource")]
+        public void CopyResource()
+        {
+            // todo: test CopyResource
+            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            {
+                SubscriptionId = TestHelper.SubscriptionId,
+                ResourceGroup = "PolicyService_CopyResource",
+                Template = TestHelper.GetJsonFileContent("json/template/vnetWithCopy"),
+                DeploymentName= "PolicyService_CopyResource"
+            });
+            Assert.False(rtv.Result);
+            Assert.NotNull(rtv.PolicyContext);
+        }
     }
 }
