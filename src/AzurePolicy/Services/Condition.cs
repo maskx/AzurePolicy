@@ -1,4 +1,5 @@
-﻿using maskx.ARMOrchestration.Functions;
+﻿using DurableTask.Core.Tracking;
+using maskx.ARMOrchestration.Functions;
 using maskx.ARMOrchestration.Orchestrations;
 using maskx.AzurePolicy.Extensions;
 using maskx.AzurePolicy.Functions;
@@ -13,7 +14,8 @@ namespace maskx.AzurePolicy.Services
 {
     public class Condition
     {
-        private readonly Dictionary<string, Func<object, object, bool>> _Conditions = new Dictionary<string, Func<object, object, bool>>();
+        private readonly Dictionary<string, Func<JsonElement, Dictionary<string, object>, object>> _LeftConditions = new Dictionary<string, Func<JsonElement, Dictionary<string, object>, object>>();
+        private readonly Dictionary<string, Func<object, object, bool>> _RightConditions = new Dictionary<string, Func<object, object, bool>>();
         private readonly PolicyFunction _PolicyFunction;
         private readonly ARMFunctions _ARMFunctions;
         private readonly IServiceProvider _ServiceProvider;
@@ -23,10 +25,70 @@ namespace maskx.AzurePolicy.Services
             this._PolicyFunction = function;
             this._ARMFunctions = aRMFunctions;
             this._ServiceProvider = serviceProvider;
-            InitBuiltInCodition();
+            InitLeftCondition();
+            InitRightBuiltInCodition();
         }
 
-        #region BuiltInCodition
+        #region LeftCondition
+        public void SetLedCondition(string name, Func<JsonElement, Dictionary<string, object>, object> func)
+        {
+            this._LeftConditions[name] = func;
+        }
+        private void InitLeftCondition()
+        {
+            this._LeftConditions.Add("field", Left_Field);
+            this._LeftConditions.Add("value",Left_Value);
+            this._LeftConditions.Add("count",Left_Count);
+        }
+        private object Left_Field(JsonElement element, Dictionary<string, object> context)
+        {
+            var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
+            var path = this._PolicyFunction.Evaluate(element.GetString(), context).ToString();
+            if (context.TryGetValue(Functions.ContextKeys.COUNT_FIELD, out object countFiled))
+            {
+                path = path.Remove(0, countFiled.ToString().Length);
+                if (path.StartsWith('.'))
+                {
+                    path = path.Remove(0, 1);
+                }
+                var paths = path.Split('.').ToList();
+                if (string.IsNullOrEmpty(paths[0]))
+                {
+                    return context[Functions.ContextKeys.COUNT_ELEMENT];
+                }
+                else
+                {
+                    using var doc = JsonDocument.Parse(context[Functions.ContextKeys.COUNT_ELEMENT].ToString());
+                    object left = doc.RootElement.GetElements(paths,
+                          _ARMFunctions,
+                          new Dictionary<string, object>() {
+                                { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, policyCxt.Resource.Input }
+                          });
+                    if (!path.Contains("[*]"))
+                        left = (left as List<object>).First();
+                    return left;
+                }
+            }
+            else
+            {
+                return _PolicyFunction.Field(path, policyCxt);
+            }
+        }
+
+        private object Left_Value(JsonElement element, Dictionary<string, object> context)
+        {
+            return this._PolicyFunction.Evaluate(element.GetString(), context);
+        }
+        private object Left_Count(JsonElement element, Dictionary<string, object> context)
+        {
+            var r = Count(element, context);
+            if (r == -1)// https://docs.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#count
+                return false;
+            return r;
+        }
+        #endregion
+
+        #region RightBuiltInCodition
 
         private bool EqualsMethod(object left, object right)
         {
@@ -369,29 +431,29 @@ namespace maskx.AzurePolicy.Services
             return (leftResult == rightResult);
         }
 
-        private void InitBuiltInCodition()
+        private void InitRightBuiltInCodition()
         {
-            this._Conditions.Add("equals", EqualsMethod);
-            this._Conditions.Add("notEquals", NotEquals);
+            this._RightConditions.Add("equals", EqualsMethod);
+            this._RightConditions.Add("notEquals", NotEquals);
             // When using the like and notLike conditions, you provide a wildcard * in the value. The value shouldn't have more than one wildcard *.
-            this._Conditions.Add("like", Like);
-            this._Conditions.Add("notLike", NotLike);
+            this._RightConditions.Add("like", Like);
+            this._RightConditions.Add("notLike", NotLike);
             // When using the match and notMatch conditions, provide # to match a digit, ? for a letter, . to match any character, and any other character to match that actual character. While match and notMatch are case-sensitive, all other conditions that evaluate a stringValue are case-insensitive. Case-insensitive alternatives are available in matchInsensitively and notMatchInsensitively.
-            this._Conditions.Add("match", Match);
-            this._Conditions.Add("matchInsensitively", MatchInsensitively);
-            this._Conditions.Add("notMatch", NotMatch);
-            this._Conditions.Add("notMatchInsensitively", NotMatchInsensitively);
-            this._Conditions.Add("contains", ContainsMethod);
-            this._Conditions.Add("notContains", NotContains);
-            this._Conditions.Add("in", In);
-            this._Conditions.Add("notIn", NotIn);
-            this._Conditions.Add("containsKey", ContainsKey);
-            this._Conditions.Add("notContainsKey", NotContainsKey);
-            this._Conditions.Add("less", Less);
-            this._Conditions.Add("lessOrEquals", LessOrEquals);
-            this._Conditions.Add("greater", Greater);
-            this._Conditions.Add("greaterOrEquals", GreaterOrEquals);
-            this._Conditions.Add("exists", Exists);
+            this._RightConditions.Add("match", Match);
+            this._RightConditions.Add("matchInsensitively", MatchInsensitively);
+            this._RightConditions.Add("notMatch", NotMatch);
+            this._RightConditions.Add("notMatchInsensitively", NotMatchInsensitively);
+            this._RightConditions.Add("contains", ContainsMethod);
+            this._RightConditions.Add("notContains", NotContains);
+            this._RightConditions.Add("in", In);
+            this._RightConditions.Add("notIn", NotIn);
+            this._RightConditions.Add("containsKey", ContainsKey);
+            this._RightConditions.Add("notContainsKey", NotContainsKey);
+            this._RightConditions.Add("less", Less);
+            this._RightConditions.Add("lessOrEquals", LessOrEquals);
+            this._RightConditions.Add("greater", Greater);
+            this._RightConditions.Add("greaterOrEquals", GreaterOrEquals);
+            this._RightConditions.Add("exists", Exists);
         }
 
         #endregion BuiltInCodition
@@ -423,51 +485,11 @@ namespace maskx.AzurePolicy.Services
 
             foreach (var item in element.EnumerateObject())
             {
-                if ("field".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
+                if(this._LeftConditions.TryGetValue(item.Name,out Func<JsonElement, Dictionary<string, object>, object> left_func))
                 {
-                    var path = this._PolicyFunction.Evaluate(item.Value.GetString(), context).ToString();
-                    if (context.TryGetValue(Functions.ContextKeys.COUNT_FIELD, out object countFiled))
-                    {
-                        path = path.Remove(0, countFiled.ToString().Length);
-                        if (path.StartsWith('.'))
-                        {
-                            path = path.Remove(0, 1);
-                        }
-                        var paths = path.Split('.').ToList();
-                        if (string.IsNullOrEmpty(paths[0]))
-                        {
-                            left = context[Functions.ContextKeys.COUNT_ELEMENT];
-                        }
-                        else
-                        {
-                            using var doc = JsonDocument.Parse(context[Functions.ContextKeys.COUNT_ELEMENT].ToString());
-                            left = doc.RootElement.GetElements(paths,
-                                _ARMFunctions,
-                                new Dictionary<string, object>() {
-                                { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, deployCxt }
-                                });
-                            if (!path.Contains("[*]"))
-                                left = (left as List<object>).First();
-                        }
-                    }
-                    else
-                    {
-                        left = _PolicyFunction.Field(path, policyCxt);
-                    }
+                    left = left_func(item.Value, context);
                 }
-                else if ("value".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    left = this._PolicyFunction.Evaluate(item.Value.GetString(), context);
-                }
-                else if ("count".Equals(item.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    var r = Count(item.Value, context);
-                    if (r == -1)// https://docs.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#count
-                        return false;
-                    else
-                        left = r;
-                }
-                else if (_Conditions.TryGetValue(item.Name, out func))
+                else if (_RightConditions.TryGetValue(item.Name, out func))
                 {
                     right = item.Value.GetEvaluatedValue(_PolicyFunction, context);
                 }

@@ -148,7 +148,7 @@ namespace maskx.AzurePolicy.Services
                 CreateByUserId = deployContext.CreateByUserId,
                 LastRunUserId = deployContext.CreateByUserId
             };
-            input.DependsOn.Add(policyContext.Resource.Input.GetResourceId(_ARMInfrastructure), input);
+            input.DependsOn.Add(policyContext.Resource.Input.ResourceId, input);
             _PolicyInfrastructure.Deploy(input);
             return true;
         }
