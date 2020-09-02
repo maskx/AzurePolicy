@@ -77,7 +77,7 @@ namespace AzurePolicyTest.Mock
             throw new System.NotImplementedException();
         }
 
-        public IEnumerable<Resource> GetResourcesByScope(string scope)
+        public DeploymentOrchestrationInput GetDeploymentOrchestrationInputByScope(string scope)
         {
             throw new System.NotImplementedException();
         }

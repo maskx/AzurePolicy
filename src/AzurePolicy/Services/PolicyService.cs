@@ -85,19 +85,22 @@ namespace maskx.AzurePolicy.Services
                 {
                     if (resource.Type == _ARMInfrastructure.BuiltinServiceTypes.Deployments)
                         continue;
-                    (continueNext, policyContext) = Validate(new PolicyContext()
+                    policyContext = new PolicyContext()
                     {
                         PolicyDefinition = policy.PolicyDefinition,
                         Parameters = policy.Parameter,
                         Resource = resource,
                         EvaluatingPhase = EvaluatingPhase.Validation
-                    });
+                    };
+                    if (_Logical.Evaluate(policyContext))
+                    {
+                        continueNext=this._Effect.Run(policyContext);
+                    }
                     if (!continueNext)
                         break;
                 }
                 if (!continueNext)
                     break;
-
             }
             if (continueNext)
             {
@@ -111,15 +114,6 @@ namespace maskx.AzurePolicy.Services
             validationResult.Result = continueNext;
             validationResult.PolicyContext = policyContext;
             return validationResult;
-        }
-
-        private (bool ContinueNext, PolicyContext Policy) Validate(PolicyContext policyContext)
-        {
-            if (_Logical.Evaluate(policyContext))
-            {
-                return (this._Effect.Run(policyContext), policyContext);
-            }
-            return (true, policyContext);
         }
 
         #endregion Validate
@@ -144,14 +138,12 @@ namespace maskx.AzurePolicy.Services
 
         public void Remedy(string scope, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {
-            var resources = this._Infrastructure.GetResourcesByScope(scope);
-            DeploymentOrchestrationInput input = new DeploymentOrchestrationInput()
-            {
-            };
+            var input = this._Infrastructure.GetDeploymentOrchestrationInputByScope(scope);
+
             var context = new Dictionary<string, object>();
             foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
             {
-                foreach (var resource in resources)
+                foreach (var resource in input.EnumerateResource(true, true))
                 {
                     var pc = new PolicyContext()
                     {
@@ -195,19 +187,14 @@ namespace maskx.AzurePolicy.Services
             }
             if (policies.Count == 0)
                 return;
-            Audit(scope, policies);
+            Audit(this._Infrastructure.GetDeploymentOrchestrationInputByScope(scope), policies);
         }
-
-        public void Audit(string scope, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
+        public void Audit(DeploymentOrchestrationInput input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {
-            var resources = this._Infrastructure.GetResourcesByScope(scope);
-            DeploymentOrchestrationInput input = new DeploymentOrchestrationInput()
-            {
-            };
             var context = new Dictionary<string, object>();
             foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
             {
-                foreach (var resource in resources)
+                foreach (var resource in input.EnumerateResource(true, true))
                 {
                     var pc = new PolicyContext()
                     {
@@ -224,8 +211,11 @@ namespace maskx.AzurePolicy.Services
                     }
                 }
             }
+            foreach (var deploy in input.EnumerateDeployments())
+            {
+                Audit(deploy, policyDefinitions);
+            }
         }
-
         #endregion Audit
     }
 }

@@ -12,8 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Doc", "Doc", "{A85ED644-3E8
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ARMOrchestration", "..\ARMOrchestration\src\ARMOrchestration\ARMOrchestration.csproj", "{C450D6F8-EEA8-4C7C-B4F5-ED97CADDFAEB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,10 +26,6 @@ Global
 		{D213105B-7E0A-4E9F-96E7-E623EE22751B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D213105B-7E0A-4E9F-96E7-E623EE22751B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D213105B-7E0A-4E9F-96E7-E623EE22751B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C450D6F8-EEA8-4C7C-B4F5-ED97CADDFAEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C450D6F8-EEA8-4C7C-B4F5-ED97CADDFAEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C450D6F8-EEA8-4C7C-B4F5-ED97CADDFAEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C450D6F8-EEA8-4C7C-B4F5-ED97CADDFAEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
