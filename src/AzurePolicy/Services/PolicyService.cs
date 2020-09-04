@@ -94,7 +94,7 @@ namespace maskx.AzurePolicy.Services
                     };
                     if (_Logical.Evaluate(policyContext))
                     {
-                        continueNext=this._Effect.Run(policyContext);
+                        continueNext = this._Effect.Run(policyContext);
                     }
                     if (!continueNext)
                         break;
@@ -133,13 +133,11 @@ namespace maskx.AzurePolicy.Services
             }
             if (policies.Count == 0)
                 return;
-            Remedy(scope, policies);
+            Remedy(this._Infrastructure.GetDeploymentOrchestrationInput(scope), policies);
         }
 
-        public void Remedy(string scope, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
+        public void Remedy(DeploymentOrchestrationInput input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {
-            var input = this._Infrastructure.GetDeploymentOrchestrationInputByScope(scope);
-
             var context = new Dictionary<string, object>();
             foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
             {
@@ -187,7 +185,7 @@ namespace maskx.AzurePolicy.Services
             }
             if (policies.Count == 0)
                 return;
-            Audit(this._Infrastructure.GetDeploymentOrchestrationInputByScope(scope), policies);
+            Audit(this._Infrastructure.GetDeploymentOrchestrationInput(scope), policies);
         }
         public void Audit(DeploymentOrchestrationInput input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {

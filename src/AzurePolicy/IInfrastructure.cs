@@ -19,7 +19,7 @@ namespace maskx.AzurePolicy
         /// <returns>when write audit success, should return true, when write fail should be false</returns>
         bool Audit(string detail, Dictionary<string, object> context);
 
-        DeploymentOrchestrationInput GetDeploymentOrchestrationInputByScope(string scope);
+        DeploymentOrchestrationInput GetDeploymentOrchestrationInput(string scope);
 
         bool ResourceIsExisting(string type, string name, string resourceGroup, string scope, string condition, Dictionary<string, object> context);
 
