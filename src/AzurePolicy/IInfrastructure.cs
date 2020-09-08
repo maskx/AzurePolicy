@@ -14,10 +14,10 @@ namespace maskx.AzurePolicy
         /// <summary>
         ///
         /// </summary>
-        /// <param name="detail"></param>
+        /// <param name="message"></param>
         /// <param name="context"></param>
         /// <returns>when write audit success, should return true, when write fail should be false</returns>
-        bool Audit(string detail, Dictionary<string, object> context);
+        bool Audit(string message, Dictionary<string, object> context);
 
         DeploymentOrchestrationInput GetDeploymentOrchestrationInput(string scope);
 

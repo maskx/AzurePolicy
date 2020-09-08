@@ -1,11 +1,9 @@
-﻿using maskx.ARMOrchestration.Functions;
-using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration.Orchestrations;
 using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Functions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 
 namespace maskx.AzurePolicy.Services
 {
@@ -15,22 +13,19 @@ namespace maskx.AzurePolicy.Services
         private readonly IInfrastructure _Infrastructure;
         private readonly ARMOrchestration.IInfrastructure _ARMInfrastructure;
         private readonly PolicyFunction _PolicyFunction;
-        private readonly ARMFunctions _ARMFunction;
-        private readonly Effect _Effect;
+        private readonly EffectService _Effect;
         private readonly IServiceProvider _ServiceProvider;
 
         public PolicyService(Logical logical,
             IInfrastructure infrastructure,
             PolicyFunction function,
-            ARMFunctions aRMFunctions,
-            Effect effect,
+            EffectService effect,
             ARMOrchestration.IInfrastructure aRMInfrastructure,
             IServiceProvider serviceProvider)
         {
             this._Infrastructure = infrastructure;
             this._Logical = logical;
             this._PolicyFunction = function;
-            this._ARMFunction = aRMFunctions;
             this._Effect = effect;
             this._ARMInfrastructure = aRMInfrastructure;
             this._ServiceProvider = serviceProvider;
@@ -79,7 +74,7 @@ namespace maskx.AzurePolicy.Services
             var context = new Dictionary<string, object>();
             bool continueNext = true;
             PolicyContext policyContext = null;
-            foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
+            foreach (var policy in policyDefinitions.OrderBy((e) => { return e.PolicyDefinition.PolicyRule.Then.Priority; }))
             {
                 foreach (var resource in input.EnumerateResource(true, true))
                 {
@@ -139,7 +134,7 @@ namespace maskx.AzurePolicy.Services
         public void Remedy(DeploymentOrchestrationInput input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {
             var context = new Dictionary<string, object>();
-            foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
+            foreach (var policy in policyDefinitions.OrderBy((e) => { return e.PolicyDefinition.PolicyRule.Then.Priority; }))
             {
                 foreach (var resource in input.EnumerateResource(true, true))
                 {
@@ -190,7 +185,7 @@ namespace maskx.AzurePolicy.Services
         public void Audit(DeploymentOrchestrationInput input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {
             var context = new Dictionary<string, object>();
-            foreach (var policy in policyDefinitions.OrderBy((e) => { return _Effect.ParseEffect(e.PolicyDefinition, context); }))
+            foreach (var policy in policyDefinitions.OrderBy((e) => { return e.PolicyDefinition.PolicyRule.Then.Priority; }))
             {
                 foreach (var resource in input.EnumerateResource(true, true))
                 {
@@ -203,9 +198,7 @@ namespace maskx.AzurePolicy.Services
                     };
                     if (_Logical.Evaluate(pc))
                     {
-                        this._Infrastructure.Audit(pc.PolicyDefinition.EffectDetail, new Dictionary<string, object>() {
-                            {Functions.ContextKeys.POLICY_CONTEXT,pc }
-                        });
+                        this._Effect.Run(pc);
                     }
                 }
             }

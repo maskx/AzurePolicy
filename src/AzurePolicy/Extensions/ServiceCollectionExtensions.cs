@@ -9,7 +9,7 @@ namespace maskx.AzurePolicy.Extensions
     {
         public static IServiceCollection UsingPolicyService(this IServiceCollection services)
         {
-            services.AddSingleton<Effect>();
+            services.AddSingleton<EffectService>();
             services.AddSingleton<Condition>();
             services.AddSingleton<Logical>();
             services.TryAddSingleton<ARMOrchestration.Functions.ARMFunctions>();

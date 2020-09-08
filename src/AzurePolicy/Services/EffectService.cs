@@ -1,7 +1,5 @@
 ﻿using maskx.ARMOrchestration.ARMTemplate;
-using maskx.ARMOrchestration.Functions;
 using maskx.ARMOrchestration.Orchestrations;
-using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Extensions;
 using maskx.AzurePolicy.Functions;
 using Newtonsoft.Json.Linq;
@@ -12,8 +10,14 @@ using System.Text.Json;
 
 namespace maskx.AzurePolicy.Services
 {
-    public class Effect
+    public class EffectService
     {
+        private static Dictionary<string, int> EffectPriority = new Dictionary<string, int>();
+
+        public static int GetPriority(string name)
+        {
+            return EffectPriority[name.ToLower()];
+        }
         public const string DisabledEffectName = "disabled";
         public const string DenyEffectName = "deny";
         public const string ModifyEffectName = "modify";
@@ -24,15 +28,12 @@ namespace maskx.AzurePolicy.Services
         public const int DefaultPriority = 600;
 
         private readonly Dictionary<string, Func<string, Dictionary<string, object>, bool>> _Effects = new Dictionary<string, Func<string, Dictionary<string, object>, bool>>();
-        private readonly Dictionary<string, int> _EffectPriority = new Dictionary<string, int>();
         private readonly PolicyFunction _PolicyFunction;
-        private readonly ARMFunctions _ARMFunctions;
         private readonly ARMOrchestration.IInfrastructure _ARMInfrastructure;
         private readonly IInfrastructure _PolicyInfrastructure;
         private readonly Logical _Logical;
 
-        public Effect(PolicyFunction policyFunction,
-            ARMFunctions aRMFunctions,
+        public EffectService(PolicyFunction policyFunction,
             ARMOrchestration.IInfrastructure aRMInfrastructure,
             IInfrastructure infrastructure,
             Logical logical)
@@ -40,20 +41,19 @@ namespace maskx.AzurePolicy.Services
             this._PolicyInfrastructure = infrastructure;
             this._Logical = logical;
             this._PolicyFunction = policyFunction;
-            this._ARMFunctions = aRMFunctions;
             this._ARMInfrastructure = aRMInfrastructure;
             InitBuiltInEffects();
         }
 
         private void InitBuiltInEffects()
         {
-            this._EffectPriority.Add(DisabledEffectName, 0);
-            this._EffectPriority.Add(ModifyEffectName, 100);
-            this._EffectPriority.Add(DenyEffectName, 800);
-            this._EffectPriority.Add(DenyIfNotExistsEffectName, 800);
-            this._EffectPriority.Add(AuditEffectName, 900);
-            this._EffectPriority.Add(AuditIfNotExistsEffectName, 900);
-            this._EffectPriority.Add(DeployIfNotExistsEffectName, 1000);
+            EffectPriority.Add(DisabledEffectName, 0);
+            EffectPriority.Add(ModifyEffectName, 100);
+            EffectPriority.Add(DenyEffectName, 800);
+            EffectPriority.Add(DenyIfNotExistsEffectName, 800);
+            EffectPriority.Add(AuditEffectName, 900);
+            EffectPriority.Add(AuditIfNotExistsEffectName, 900);
+            EffectPriority.Add(DeployIfNotExistsEffectName, 1000);
 
             this._Effects.Add(DisabledEffectName, (detail, context) => false);
             //  use modify effect insteade append effect
@@ -61,14 +61,19 @@ namespace maskx.AzurePolicy.Services
             this._Effects.Add(ModifyEffectName, Modify);
             this._Effects.Add(DenyEffectName, (detai, context) => false);
             this._Effects.Add(DenyIfNotExistsEffectName, ResourceIsExists);
-            this._Effects.Add(AuditEffectName, this._PolicyInfrastructure.Audit);
+            this._Effects.Add(AuditEffectName, this.Audit);
             this._Effects.Add(AuditIfNotExistsEffectName, AuditIfNotExists);
             this._Effects.Add(DeployIfNotExistsEffectName, DeployIfNotExists);
         }
-
+        private bool Audit(string detail, Dictionary<string, object> context)
+        {
+            // todo: format audit message
+            return this._PolicyInfrastructure.Audit(detail, context);
+        }
         private bool AuditIfNotExists(string detail, Dictionary<string, object> context)
         {
             if (ResourceIsExists(detail, context)) return true;
+            // todo: format audit message
             return this._PolicyInfrastructure.Audit(detail, context);
         }
 
@@ -323,33 +328,20 @@ namespace maskx.AzurePolicy.Services
 
         #endregion Modify
 
-        public void SetEffect(string name, Func<string, Dictionary<string, object>, bool> func)
+        public void SetEffect(string name, Func<string, Dictionary<string, object>, bool> func, int priority = DefaultPriority)
         {
             this._Effects[name] = func;
+            EffectPriority[name] = priority;
         }
 
         public bool Run(PolicyContext policyContext)
         {
-            if (!this._Effects.TryGetValue(policyContext.PolicyDefinition.EffectName.ToLower(), out Func<string, Dictionary<string, object>, bool> func))
-                throw new Exception($"cannot find an effect named '{policyContext.PolicyDefinition.EffectName}'");
-            return func(policyContext.PolicyDefinition.EffectDetail,
+            if (!this._Effects.TryGetValue(policyContext.PolicyDefinition.PolicyRule.Then.Name.ToLower(), out Func<string, Dictionary<string, object>, bool> func))
+                throw new Exception($"cannot find an effect named '{policyContext.PolicyDefinition.PolicyRule.Then.Name.ToLower()}'");
+            return func(policyContext.PolicyDefinition.PolicyRule.Then.Details,
                   new Dictionary<string, object>() {
-                    { Functions.ContextKeys.POLICY_CONTEXT,policyContext}
+                    { ContextKeys.POLICY_CONTEXT,policyContext}
                   });
-        }
-
-        public int ParseEffect(PolicyDefinition policyDefinition, Dictionary<string, object> context)
-        {
-            using var doc = JsonDocument.Parse(policyDefinition.PolicyRule.Then);
-            var root = doc.RootElement;
-            policyDefinition.EffectName = this._PolicyFunction.Evaluate(root.GetProperty("effect").GetString(), context).ToString();
-            if (root.TryGetProperty("details", out JsonElement detailE))
-                policyDefinition.EffectDetail = detailE.GetRawText();
-            if (this._EffectPriority.TryGetValue(policyDefinition.EffectName, out int priority))
-                policyDefinition.EffectPriority = priority;
-            else
-                policyDefinition.EffectPriority = DefaultPriority;
-            return policyDefinition.EffectPriority;
         }
     }
 }

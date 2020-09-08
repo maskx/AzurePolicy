@@ -5,6 +5,7 @@ using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Services;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace AzurePolicyTest.Mock
 {
@@ -21,16 +22,22 @@ namespace AzurePolicyTest.Mock
         {
             var rtv = new List<(PolicyDefinition PolicyDefinition, string Parameter)>();
             var seg = scope.Split("/");
-            var sub = seg[2];
             var rg = seg[^1].Replace('_', '/');
-            rtv.Add((PolicyDefinition.Parse(TestHelper.GetJsonFileContent($"JSON/policy/{rg}")),
-                string.Empty));
+
+            rtv.Add((GetPolicyDefinition(rg), string.Empty));
             if (rg == "Effect/Disabled")
-                rtv.Add((PolicyDefinition.Parse(TestHelper.GetJsonFileContent("JSON/policy/effect/deny")),
-                string.Empty));
+            {
+                rtv.Add((GetPolicyDefinition("effect/deny"), string.Empty));
+            }
+
+
             return rtv;
         }
-
+        private PolicyDefinition GetPolicyDefinition(string name)
+        {
+            using var doc = JsonDocument.Parse(TestHelper.GetJsonFileContent($"JSON/policy/{name}"));
+            return doc.RootElement.GetProperty("properties").GetRawText();
+        }
         public List<(PolicyInitiative PolicyInitiative, string Parameter)> GetPolicyInitiatives(string scope, EvaluatingPhase evaluatingPhase)
         {
             var rtv = new List<(PolicyInitiative PolicyInitiative, string Parameter)>();

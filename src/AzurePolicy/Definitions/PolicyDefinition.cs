@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using maskx.AzurePolicy.Utilities;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace maskx.AzurePolicy.Definitions
 {
@@ -12,27 +12,17 @@ namespace maskx.AzurePolicy.Definitions
     {
         public string DisplayName { get; set; }
         public string Description { get; set; }
-        public string Scope { get; set; }
-        public List<string> NotScopes { get; set; }
-        public PolicyTypeEnum Type { get; set; }
+        public PolicyTypeEnum PolicyType { get; set; }
         public string Mode { get; set; }
+        [JsonConverter(typeof(RawTextConverter))]
         public string Metadata { get; set; }
+        [JsonConverter(typeof(RawTextConverter))]
         public string Parameters { get; set; }
-        public PolicyRule PolicyRule { get; set; } = new PolicyRule();
-        internal int EffectPriority { get; set; }
-        internal string EffectName { get; set; }
-        internal string EffectDetail { get; set; }
-        public static PolicyDefinition Parse(string content)
+        public PolicyRule PolicyRule { get; set; }
+        public static implicit operator PolicyDefinition(string rawString)
         {
-            PolicyDefinition policyDefinition = new PolicyDefinition();
-            using var doc = JsonDocument.Parse(content);
-            var root = doc.RootElement.GetProperty("properties");
-            if (!root.TryGetProperty("policyRule", out JsonElement ruleE))
-                throw new Exception("cannot find policyRule node");
-            policyDefinition.PolicyRule.If = ruleE.GetProperty("if").GetRawText();
-            policyDefinition.PolicyRule.Then = ruleE.GetProperty("then").GetRawText();
-
-            return policyDefinition;
+            return JsonSerializer.Deserialize<PolicyDefinition>(rawString,SerializerOptions.Default);           
         }
+        public PolicyDefinition() { }
     }
 }

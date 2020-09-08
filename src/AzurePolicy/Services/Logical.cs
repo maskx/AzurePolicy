@@ -1,5 +1,4 @@
 ﻿using maskx.AzurePolicy.Functions;
-using maskx.ARMOrchestration.Orchestrations;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -42,7 +41,7 @@ namespace maskx.AzurePolicy.Services
                 return false;
             });
         }
-
+        // todo: 需要重新设计，支持 返回命中条件信息，以便拼接策略执行结果
         public bool Evaluate(JsonElement element, Dictionary<string, object> context)
         {
             foreach (var item in element.EnumerateObject())

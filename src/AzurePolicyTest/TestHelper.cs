@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 
 namespace AzurePolicyTest
 {
@@ -24,6 +25,7 @@ namespace AzurePolicyTest
         {
             string s = Path.Combine(AppContext.BaseDirectory, $"{filename}.json");
             return File.ReadAllText(s);
+           
         }
     }
 }

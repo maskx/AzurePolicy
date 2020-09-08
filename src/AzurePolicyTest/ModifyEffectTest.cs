@@ -196,18 +196,6 @@ namespace AzurePolicyTest
             Assert.NotNull(rtv.DeploymentOrchestrationInput);
             Assert.NotNull(rtv.PolicyContext);
 
-            // rtv.PolicyContext.Resource
-            //using var doc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
-            //Assert.True(doc.RootElement.TryGetProperty("properties", out JsonElement properties));
-            //Assert.True(properties.TryGetProperty("subnets", out JsonElement subnets));
-            //foreach (var subnet in subnets.EnumerateArray())
-            //{
-            //    if (subnet.TryGetProperty("properties", out JsonElement subnetproperties))
-            //    {
-            //        Assert.False(subnetproperties.TryGetProperty("addressPrefix", out JsonElement _));
-            //    }
-            //}
-
             // rtv.DeploymentOrchestrationInput.TemplateContent
             using var doc_dp = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
             Assert.True(doc_dp.RootElement.TryGetProperty("resources", out JsonElement resources));
