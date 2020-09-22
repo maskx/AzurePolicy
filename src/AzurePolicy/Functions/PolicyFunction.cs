@@ -690,7 +690,7 @@ namespace maskx.AzurePolicy.Functions
                 var r = root.GetProperty("properties").GetElements(p.Split('.').ToList(), _ARMFunctions, context);
                 if (p.Contains("[*]"))
                     return r;
-                return r.First();
+                return r.FirstOrDefault();
             }
             else if ("name".Equals(fieldPath, StringComparison.OrdinalIgnoreCase))
             {

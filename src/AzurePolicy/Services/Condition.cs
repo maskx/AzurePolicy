@@ -28,7 +28,7 @@ namespace maskx.AzurePolicy.Services
         }
 
         #region LeftCondition
-        public void SetLedCondition(string name, Func<JsonElement, Dictionary<string, object>, object> func)
+        public void SetLeftCondition(string name, Func<JsonElement, Dictionary<string, object>, object> func)
         {
             this._LeftConditions[name] = func;
         }
