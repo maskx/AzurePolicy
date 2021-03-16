@@ -1,4 +1,4 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
 using Xunit;
 
 namespace AzurePolicyTest
@@ -17,7 +17,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "CountNoWhere")]
         public void CountNoWhere()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Count_NoWhere",
@@ -30,7 +30,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "CountWhere")]
         public void CountWhere()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Count_Where",
@@ -43,14 +43,13 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "CountWhereWithChildProperty")]
         public void CountWhereWithChildProperty()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Count_WhereWithChildProperty",
                 Template = TestHelper.GetJsonFileContent("json/template/count_child_property")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
     }
 }

@@ -1,10 +1,10 @@
 ﻿using maskx.ARMOrchestration;
 using maskx.ARMOrchestration.Activities;
-using maskx.ARMOrchestration.Orchestrations;
+using maskx.ARMOrchestration.ARMTemplate;
 using maskx.OrchestrationService;
-using maskx.OrchestrationService.Activity;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AzurePolicyTest.Mock
 {
@@ -30,12 +30,22 @@ namespace AzurePolicyTest.Mock
             return ("D51C2231-3D30-4FEB-BEBB-EDBE081106DA", "ResourceGroup", "001002003004");
         }
 
-        public AsyncRequestInput GetRequestInput(AsyncRequestActivityInput input)
+        public Task<string> GetParameterContentAsync(ParametersLink link, Deployment input)
         {
             throw new NotImplementedException();
         }
 
-        public TaskResult List(DeploymentOrchestrationInput context, string resourceId, string apiVersion, string functionValues = "", string value = "")
+        public object GetRequestInput(AsyncRequestActivityInput input)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetTemplateContentAsync(TemplateLink link, Deployment input)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TaskResult List(Deployment context, string resourceId, string apiVersion, string functionValues = "", string value = "")
         {
             throw new NotImplementedException();
         }
@@ -45,12 +55,12 @@ namespace AzurePolicyTest.Mock
             throw new NotImplementedException();
         }
 
-        public TaskResult Reference(DeploymentOrchestrationInput context, string resourceName, string apiVersion = "", bool full = false)
+        public TaskResult Reference(Deployment context, string resourceName, string apiVersion = "", bool full = false)
         {
             throw new NotImplementedException();
         }
 
-        public TaskResult WhatIf(DeploymentOrchestrationInput context, string resourceName)
+        public TaskResult WhatIf(Deployment context, string resourceName)
         {
             throw new NotImplementedException();
         }

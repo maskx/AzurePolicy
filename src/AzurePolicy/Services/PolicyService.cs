@@ -1,13 +1,15 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
 using maskx.AzurePolicy.Definitions;
+using maskx.AzurePolicy.Extensions;
 using maskx.AzurePolicy.Functions;
+using maskx.OrchestrationService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace maskx.AzurePolicy.Services
 {
-    public class PolicyService
+    public class PolicyService : IPolicyService
     {
         private readonly Logical _Logical;
         private readonly IInfrastructure _Infrastructure;
@@ -36,38 +38,18 @@ namespace maskx.AzurePolicy.Services
         /// <summary>
         /// run at create resource phase
         /// </summary>
-        public ValidationResult Validate(DeploymentOrchestrationInput input)
+        public ValidationResult Validate(Deployment input)
         {
-            input.ServiceProvider = _ServiceProvider;
-            var scope = "";
-            if (!string.IsNullOrEmpty(input.SubscriptionId))
-            {
-                scope = $"/{_ARMInfrastructure.BuiltinPathSegment.Subscription}/{input.SubscriptionId}";
-            }
-            if (!string.IsNullOrEmpty(input.ManagementGroupId))
-            {
-                scope = $"/{_ARMInfrastructure.BuiltinPathSegment.ManagementGroup}/{input.ManagementGroupId}";
-            }
-            if (!string.IsNullOrEmpty(input.ResourceGroup))
-                scope += $"/{_ARMInfrastructure.BuiltinPathSegment.ResourceGroup}/{input.ResourceGroup}";
-            if (string.IsNullOrEmpty(scope))
-                throw new ArgumentException("input not set scope");
-            var policies = this._Infrastructure.GetPolicyDefinitions(scope, EvaluatingPhase.Validation);
-            var initiatives = this._Infrastructure.GetPolicyInitiatives(scope, EvaluatingPhase.Validation);
-            foreach (var item in initiatives)
-            {
-                policies.AddRange(PolicyInitiative.ExpandePolicyDefinitions(item.PolicyInitiative, item.Parameter, _PolicyFunction));
-            }
-            return Validate(input, policies);
+            return Validate(input, input.GetPolicyList(_ServiceProvider, EvaluatingPhase.Validation));
         }
 
-        public ValidationResult Validate(DeploymentOrchestrationInput input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
+        public ValidationResult Validate(Deployment input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {
-            ValidationResult validationResult = new ValidationResult() { Result = true, DeploymentOrchestrationInput = input };
+            ValidationResult validationResult = new ValidationResult() { Result = true };
             var (r, m) = input.Validate(_ServiceProvider);
             if (!r)
             {
-                return new ValidationResult() { Result = false, Message = m, DeploymentOrchestrationInput = input };
+                return new ValidationResult() { Result = false, Message = m };
             }
             if (policyDefinitions.Count == 0)
                 return validationResult;
@@ -131,7 +113,7 @@ namespace maskx.AzurePolicy.Services
             Remedy(this._Infrastructure.GetDeploymentOrchestrationInput(scope), policies);
         }
 
-        public void Remedy(DeploymentOrchestrationInput input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
+        public void Remedy(Deployment input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {
             var context = new Dictionary<string, object>();
             foreach (var policy in policyDefinitions.OrderBy((e) => { return e.PolicyDefinition.PolicyRule.Then.Priority; }))
@@ -182,7 +164,7 @@ namespace maskx.AzurePolicy.Services
                 return;
             Audit(this._Infrastructure.GetDeploymentOrchestrationInput(scope), policies);
         }
-        public void Audit(DeploymentOrchestrationInput input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
+        public void Audit(Deployment input, List<(PolicyDefinition PolicyDefinition, string Parameter)> policyDefinitions)
         {
             var context = new Dictionary<string, object>();
             foreach (var policy in policyDefinitions.OrderBy((e) => { return e.PolicyDefinition.PolicyRule.Then.Priority; }))
@@ -206,6 +188,27 @@ namespace maskx.AzurePolicy.Services
             {
                 Audit(deploy, policyDefinitions);
             }
+        }
+
+        public TaskResult EvaluateResource(ARMOrchestration.ARMTemplate.Resource resource)
+        {
+            var policies = this._Infrastructure.GetPolicyDefinitions(resource.ResourceId, EvaluatingPhase.Auditing);
+            var initiatives = this._Infrastructure.GetPolicyInitiatives(resource.ResourceId, EvaluatingPhase.Auditing);
+            foreach (var item in initiatives)
+            {
+                policies.AddRange(PolicyInitiative.ExpandePolicyDefinitions(item.PolicyInitiative, item.Parameter, _PolicyFunction));
+            }
+            if (policies.Count == 0)
+                return new TaskResult(200, "");
+            return new TaskResult(200, "");
+        }
+
+        public TaskResult EvaluateDeployment(Deployment deployment)
+        {
+            var r = Validate(deployment, deployment.GetPolicyList(_ServiceProvider, EvaluatingPhase.Validation));
+            if (r.Result)
+                return new TaskResult(200, r.Message);
+            return new TaskResult(400, r);
         }
         #endregion Audit
     }

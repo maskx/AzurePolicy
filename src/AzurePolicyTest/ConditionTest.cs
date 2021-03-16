@@ -1,4 +1,5 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
+using maskx.ARMOrchestration.Orchestrations;
 using Xunit;
 
 namespace AzurePolicyTest
@@ -17,7 +18,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "equals")]
         public void ConditionEquals()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_equals",
@@ -29,7 +30,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notEquals")]
         public void NotEquals()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_NotEquals",
@@ -41,7 +42,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "like")]
         public void Like()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_Like",
@@ -53,7 +54,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notLike")]
         public void NotLike()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_notLike",
@@ -65,7 +66,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "in")]
         public void In()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_In",
@@ -77,7 +78,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "inWithField")]
         public void InWithField()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_InWithField",
@@ -89,7 +90,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notIn")]
         public void NotIn()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_NotIn",
@@ -101,7 +102,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "match")]
         public void ConditionMatch()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_match",
@@ -113,7 +114,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notMatch")]
         public void NotMatch()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_NotMatch",
@@ -125,7 +126,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "matchInsensitively")]
         public void ConditionMatchInsensitively()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_matchInsensitively",
@@ -137,7 +138,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notMatchInsensitively")]
         public void NotMatchInsensitively()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_notMatchInsensitively",
@@ -149,7 +150,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "contains")]
         public void Contains()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_Contains",
@@ -161,7 +162,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notContains")]
         public void NotContains()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_NotContains",
@@ -173,7 +174,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "less")]
         public void Less()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_less",
@@ -185,7 +186,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "greater")]
         public void Greater()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_Greater",
@@ -197,7 +198,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "lessOrEquals")]
         public void LessOrEquals()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_lessOrEquals",
@@ -209,7 +210,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "greaterOrEquals")]
         public void GreaterOrEquals()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_GreaterOrEquals",
@@ -221,7 +222,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "containsKey")]
         public void ContainsKey()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_containsKey",
@@ -233,7 +234,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "notContainsKey")]
         public void NotContainsKey()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_notContainsKey",
@@ -245,7 +246,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "exists")]
         public void Exists()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Condition_exists",

@@ -1,4 +1,4 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
 using Xunit;
 
 namespace AzurePolicyTest
@@ -17,7 +17,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "not")]
         public void Not()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Logical_not",
@@ -30,7 +30,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "allOf")]
         public void AllOf()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Logical_allOf",
@@ -43,7 +43,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "anyOf")]
         public void AnyOf()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Logical_anyOf",

@@ -35,8 +35,8 @@ namespace maskx.AzurePolicy.Services
         private void InitLeftCondition()
         {
             this._LeftConditions.Add("field", Left_Field);
-            this._LeftConditions.Add("value",Left_Value);
-            this._LeftConditions.Add("count",Left_Count);
+            this._LeftConditions.Add("value", Left_Value);
+            this._LeftConditions.Add("count", Left_Count);
         }
         private object Left_Field(JsonElement element, Dictionary<string, object> context)
         {
@@ -60,7 +60,7 @@ namespace maskx.AzurePolicy.Services
                     object left = doc.RootElement.GetElements(paths,
                           _ARMFunctions,
                           new Dictionary<string, object>() {
-                                { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, policyCxt.Resource.Input }
+                                { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, policyCxt.Resource.Deployment }
                           });
                     if (!path.Contains("[*]"))
                         left = (left as List<object>).First();
@@ -479,11 +479,11 @@ namespace maskx.AzurePolicy.Services
             object right = null;
             Func<object, object, bool> func = null;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
-            var deployCxt = policyCxt.Resource.Input;
+            var deployCxt = policyCxt.Resource.Deployment;
 
             foreach (var item in element.EnumerateObject())
             {
-                if(this._LeftConditions.TryGetValue(item.Name,out Func<JsonElement, Dictionary<string, object>, object> left_func))
+                if (this._LeftConditions.TryGetValue(item.Name, out Func<JsonElement, Dictionary<string, object>, object> left_func))
                 {
                     left = left_func(item.Value, context);
                 }
@@ -502,7 +502,7 @@ namespace maskx.AzurePolicy.Services
             if (!element.TryGetProperty("field", out JsonElement fieldE))
                 return -1;
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
-            var deployCxt = policyCxt.Resource.Input;
+            var deployCxt = policyCxt.Resource.Deployment;
 
             var path = this._PolicyFunction.Evaluate(fieldE.GetString(), context).ToString();
             if (!(_PolicyFunction.Field(path, policyCxt) is List<object> d))
@@ -569,13 +569,8 @@ namespace maskx.AzurePolicy.Services
 
         private bool ConditionCompare(string left, string right, string operation)
         {
-            bool leftParse = false;
-            bool rightParse = false;
-            DateTime leftTime = new DateTime();
-            DateTime rightTime = new DateTime();
-
-            leftParse = DateTime.TryParseExact(left, "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture, DateTimeStyles.None, out leftTime);
-            rightParse = DateTime.TryParseExact(right, "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture, DateTimeStyles.None, out rightTime);
+            bool leftParse = DateTime.TryParseExact(left, "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime leftTime);
+            bool rightParse = DateTime.TryParseExact(right, "yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime rightTime);
             if (((leftParse == false) && (rightParse == true)) || ((leftParse == true) && (rightParse == false)))
             {
                 throw new Exception($"field and input of condition can not both parse to datetime,field:{left},input:{right}");
@@ -592,13 +587,9 @@ namespace maskx.AzurePolicy.Services
                     _ => throw new NotImplementedException(),
                 };
             }
-            leftParse = false;
-            rightParse = false;
-            Int32 leftInt = new Int32();
-            Int32 rightInt = new Int32();
 
-            leftParse = Int32.TryParse(left, out leftInt);
-            rightParse = Int32.TryParse(right, out rightInt);
+            leftParse = Int32.TryParse(left, out int leftInt);
+            rightParse = Int32.TryParse(right, out int rightInt);
             if (((!leftParse) && rightParse) || (leftParse && (!rightParse)))
             {
                 throw new Exception($"field and input of condition can not both parse to int,field:{left},input:{right}");

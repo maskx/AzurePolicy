@@ -1,4 +1,4 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
 using Xunit;
 
 namespace AzurePolicyTest
@@ -17,7 +17,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "field")]
         public void Field()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Function_Field",
@@ -30,7 +30,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "fieldInLength")]
         public void FieldInLength()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Function_FieldInLength",
@@ -43,7 +43,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "addDays")]
         public void AddDays()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Function_addDays",

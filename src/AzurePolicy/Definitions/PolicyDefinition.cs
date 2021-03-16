@@ -21,7 +21,7 @@ namespace maskx.AzurePolicy.Definitions
         public PolicyRule PolicyRule { get; set; }
         public static implicit operator PolicyDefinition(string rawString)
         {
-            return JsonSerializer.Deserialize<PolicyDefinition>(rawString,SerializerOptions.Default);           
+            return JsonSerializer.Deserialize<PolicyDefinition>(rawString,SerializerOptions.Default);
         }
         public PolicyDefinition() { }
     }

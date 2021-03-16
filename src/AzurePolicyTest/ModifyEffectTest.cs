@@ -1,4 +1,4 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
 using System.Linq;
 using System.Text.Json;
 using Xunit;
@@ -22,24 +22,24 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "RmoveJobject")]
         public void RmoveJobject()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_RmoveJobject",
                 Template = TestHelper.GetJsonFileContent("json/template/subnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
             Assert.NotNull(rtv.PolicyContext);
 
             // rtv.PolicyContext.Resource
-            using var pc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
+            using var pc = JsonDocument.Parse(rtv.PolicyContext.Resource.ToString());
             Assert.True(pc.RootElement.TryGetProperty("properties", out JsonElement properties_pc));
             Assert.True(properties_pc.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup_pc));
             Assert.False(networkSecurityGroup_pc.TryGetProperty("id", out JsonElement _));
 
             //rtv.DeploymentOrchestrationInput.Template
-            using var doc = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
+            using var doc = JsonDocument.Parse(deployment.Template.ToString());
             Assert.True(doc.RootElement.TryGetProperty("resources", out JsonElement resources));
             foreach (var r in resources.EnumerateArray())
             {
@@ -49,7 +49,7 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.Template
-            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+            using var p = JsonDocument.Parse(deployment.Template.Resources["Subnet1"].Properties);
             Assert.True(p.RootElement.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup1));
             Assert.False(networkSecurityGroup1.TryGetProperty("id", out JsonElement _));
         }
@@ -57,24 +57,24 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "RmoveJobjectNotExist")]
         public void RmoveJobjectNotExist()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_RmoveJobjectNotExist",
                 Template = TestHelper.GetJsonFileContent("json/template/subnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
 
             // rtv.PolicyContext.Resource
-            using var doc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
+            using var doc = JsonDocument.Parse(rtv.PolicyContext.Resource.ToString());
             Assert.True(doc.RootElement.TryGetProperty("properties", out JsonElement properties));
             Assert.True(properties.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup));
             Assert.True(networkSecurityGroup.TryGetProperty("id", out JsonElement _));
 
             // rtv.DeploymentOrchestrationInput.TemplateContent
-            using var doc_dp = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
+            using var doc_dp = JsonDocument.Parse(deployment.Template.ToString());
             Assert.True(doc_dp.RootElement.TryGetProperty("resources", out JsonElement resources));
             foreach (var r in resources.EnumerateArray())
             {
@@ -84,7 +84,7 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.Template.Resources
-            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+            using var p = JsonDocument.Parse(deployment.Template.Resources["Subnet1"].Properties);
             Assert.True(p.RootElement.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup_p));
             Assert.True(networkSecurityGroup_p.TryGetProperty("id", out JsonElement _));
         }
@@ -92,22 +92,22 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "RmoveArray")]
         public void RmoveArray()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_RmoveArray",
                 Template = TestHelper.GetJsonFileContent("json/template/subnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
             Assert.NotNull(rtv.PolicyContext);
             // rtv.PolicyContext.Resource
-            using var doc_pc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
+            using var doc_pc = JsonDocument.Parse(rtv.PolicyContext.Resource.ToString());
             Assert.True(doc_pc.RootElement.TryGetProperty("properties", out JsonElement properties_pc));
             Assert.False(properties_pc.TryGetProperty("serviceEndpoints", out JsonElement _));
 
             // rtv.DeploymentOrchestrationInput.TemplateContent
-            using var doc = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
+            using var doc = JsonDocument.Parse(deployment.Template.ToString());
             Assert.True(doc.RootElement.TryGetProperty("resources", out JsonElement resources));
             foreach (var r in resources.EnumerateArray())
             {
@@ -116,25 +116,25 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.Template.Resources
-            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+            using var p = JsonDocument.Parse(deployment.Template.Resources["Subnet1"].Properties);
             Assert.False(p.RootElement.TryGetProperty("serviceEndpoints", out JsonElement _));
         }
 
         [Fact(DisplayName = "RmoveArrayNotExist")]
         public void RmoveArrayNotExist()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_RmoveArrayNotExist",
                 Template = TestHelper.GetJsonFileContent("json/template/subnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
 
             // rtv.PolicyContext.Resource
-            using var doc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
+            using var doc = JsonDocument.Parse(rtv.PolicyContext.Resource.ToString());
             Assert.True(doc.RootElement.TryGetProperty("properties", out JsonElement properties));
             Assert.True(properties.TryGetProperty("serviceEndpoints", out JsonElement _));
         }
@@ -142,18 +142,18 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "RmoveStringItemInArray")]
         public void RmoveStringItemInArray()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_RmoveStringItemInArray",
                 Template = TestHelper.GetJsonFileContent("json/template/subnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
 
             // rtv.PolicyContext.Resource
-            using var doc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
+            using var doc = JsonDocument.Parse(rtv.PolicyContext.Resource.ToString());
             Assert.True(doc.RootElement.TryGetProperty("properties", out JsonElement properties));
             Assert.True(properties.TryGetProperty("addressPrefixes", out JsonElement addressPrefixes));
             foreach (var item in addressPrefixes.EnumerateArray())
@@ -162,7 +162,7 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.TemplateContent
-            using var doc_dp = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
+            using var doc_dp = JsonDocument.Parse(deployment.Template.ToString());
             Assert.True(doc_dp.RootElement.TryGetProperty("resources", out JsonElement resources));
             foreach (var r in resources.EnumerateArray())
             {
@@ -175,7 +175,7 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.Template.Resources
-            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+            using var p = JsonDocument.Parse(deployment.Template.Resources["Subnet1"].Properties);
             Assert.True(p.RootElement.TryGetProperty("addressPrefixes", out JsonElement addressPrefixes_p));
             foreach (var item in addressPrefixes_p.EnumerateArray())
             {
@@ -186,18 +186,30 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "RmoveOjbjectInArray")]
         public void RmoveOjbjectInArray()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_RmoveOjbjectInArray",
                 Template = TestHelper.GetJsonFileContent("json/template/vnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
             Assert.NotNull(rtv.PolicyContext);
 
+            // rtv.DeploymentOrchestrationInput.Template.Resources
+            using var p1 = JsonDocument.Parse(deployment.Template.Resources["VNet1"].ToString());
+            Assert.True(p1.RootElement.TryGetProperty("properties", out JsonElement p2));
+            Assert.True(p2.TryGetProperty("subnets", out JsonElement subnets_p1));
+            foreach (var subnet in subnets_p1.EnumerateArray())
+            {
+                if (subnet.TryGetProperty("properties", out JsonElement subnetproperties_p1))
+                {
+                    Assert.False(subnetproperties_p1.TryGetProperty("addressPrefix", out JsonElement _));
+                }
+            }
+
             // rtv.DeploymentOrchestrationInput.TemplateContent
-            using var doc_dp = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
+            using var doc_dp = JsonDocument.Parse(deployment.Template.ToString());
             Assert.True(doc_dp.RootElement.TryGetProperty("resources", out JsonElement resources));
             foreach (var r in resources.EnumerateArray())
             {
@@ -214,8 +226,8 @@ namespace AzurePolicyTest
                 }
             }
 
-            // rtv.DeploymentOrchestrationInput.Template.Resources
-            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["VNet1"].Properties);
+            // rtv.DeploymentOrchestrationInput.Template.Resources.Properties
+            using var p = JsonDocument.Parse(deployment.Template.Resources["VNet1"].Properties);
             Assert.True(p.RootElement.TryGetProperty("subnets", out JsonElement subnets_p));
             foreach (var subnet in subnets_p.EnumerateArray())
             {
@@ -233,25 +245,25 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "AddOrReplace_AddJobject")]
         public void AddOrReplace_AddJobject()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_AddOrReplace_AddJobject",
                 Template = TestHelper.GetJsonFileContent("json/template/subnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
             Assert.NotNull(rtv.PolicyContext);
 
             // rtv.PolicyContext.Resource
-            using var pc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
+            using var pc = JsonDocument.Parse(rtv.PolicyContext.Resource.ToString());
             Assert.True(pc.RootElement.TryGetProperty("properties", out JsonElement properties_pc));
             Assert.True(properties_pc.TryGetProperty("routeTable", out JsonElement routeTable_pc));
             Assert.True(routeTable_pc.TryGetProperty("id", out JsonElement v_pc));
             Assert.Equal("abc", v_pc.GetString());
 
             //rtv.DeploymentOrchestrationInput.TemplateContent
-            using var doc = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
+            using var doc = JsonDocument.Parse(deployment.Template.ToString());
             Assert.True(doc.RootElement.TryGetProperty("resources", out JsonElement resources));
             foreach (var r in resources.EnumerateArray())
             {
@@ -262,7 +274,7 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.Template
-            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+            using var p = JsonDocument.Parse(deployment.Template.Resources["Subnet1"].Properties);
             Assert.True(p.RootElement.TryGetProperty("routeTable", out JsonElement routeTable_t));
             Assert.True(routeTable_t.TryGetProperty("id", out JsonElement id_t));
             Assert.Equal("abc", id_t.GetString());
@@ -271,25 +283,25 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "AddOrReplace_ReplaceJobject")]
         public void AddOrReplace_ReplaceJobject()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_AddOrReplace_ReplaceJobject",
                 Template = TestHelper.GetJsonFileContent("json/template/subnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
             Assert.NotNull(rtv.PolicyContext);
 
             // rtv.PolicyContext.Resource
-            using var pc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
+            using var pc = JsonDocument.Parse(rtv.PolicyContext.Resource.ToString());
             Assert.True(pc.RootElement.TryGetProperty("properties", out JsonElement properties_pc));
             Assert.True(properties_pc.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup_pc));
             Assert.True(networkSecurityGroup_pc.TryGetProperty("id", out JsonElement v_pc));
             Assert.Equal("abc", v_pc.GetString());
 
             //rtv.DeploymentOrchestrationInput.TemplateContent
-            using var doc = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
+            using var doc = JsonDocument.Parse(deployment.Template.ToString());
             Assert.True(doc.RootElement.TryGetProperty("resources", out JsonElement resources));
             foreach (var r in resources.EnumerateArray())
             {
@@ -300,7 +312,7 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.Template
-            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+            using var p = JsonDocument.Parse(deployment.Template.Resources["Subnet1"].Properties);
             Assert.True(p.RootElement.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup_t));
             Assert.True(networkSecurityGroup_t.TryGetProperty("id", out JsonElement id_t));
             Assert.Equal("abc", id_t.GetString());
@@ -309,23 +321,23 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "AddOrReplace_AddItemInArray")]
         public void AddOrReplace_AddItemInArray()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_AddOrReplace_AddItemInArray",
                 Template = TestHelper.GetJsonFileContent("json/template/subnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
             Assert.NotNull(rtv.PolicyContext);
             // rtv.PolicyContext.Resource
-            using var doc_pc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
+            using var doc_pc = JsonDocument.Parse(rtv.PolicyContext.Resource.ToString());
             Assert.True(doc_pc.RootElement.TryGetProperty("properties", out JsonElement properties_pc));
             Assert.True(properties_pc.TryGetProperty("addressPrefixes", out JsonElement addressPrefixes_pc));
             Assert.Equal(1, addressPrefixes_pc.EnumerateArray().Count((e) => e.GetString() == "10.0.0.1/12"));
 
             // rtv.DeploymentOrchestrationInput.TemplateContent
-            using var doc = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
+            using var doc = JsonDocument.Parse(deployment.Template.ToString());
             Assert.True(doc.RootElement.TryGetProperty("resources", out JsonElement resources));
             foreach (var r in resources.EnumerateArray())
             {
@@ -335,7 +347,7 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.Template.Resources
-            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+            using var p = JsonDocument.Parse(deployment.Template.Resources["Subnet1"].Properties);
             Assert.True(p.RootElement.TryGetProperty("addressPrefixes", out JsonElement addressPrefixes_t));
             Assert.Equal(1, addressPrefixes_t.EnumerateArray().Count((e) => e.GetString() == "10.0.0.1/12"));
         }
@@ -377,17 +389,17 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "AddOrReplace_AddItemInArrayOfArray")]
         public void AddOrReplace_AddItemInArrayOfArray()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_AddOrReplace_AddItemInArrayOfArray",
                 Template = TestHelper.GetJsonFileContent("json/template/subnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
             Assert.NotNull(rtv.PolicyContext);
             // rtv.PolicyContext.Resource
-            using var doc_pc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
+            using var doc_pc = JsonDocument.Parse(rtv.PolicyContext.Resource.ToString());
             Assert.True(doc_pc.RootElement.TryGetProperty("properties", out JsonElement properties_pc));
             Assert.True(properties_pc.TryGetProperty("serviceEndpoints", out JsonElement serviceEndpoints_pc));
             foreach (var item in serviceEndpoints_pc.EnumerateArray())
@@ -397,7 +409,7 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.TemplateContent
-            using var doc = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
+            using var doc = JsonDocument.Parse(deployment.Template.ToString());
             Assert.True(doc.RootElement.TryGetProperty("resources", out JsonElement resources));
             foreach (var r in resources.EnumerateArray())
             {
@@ -411,7 +423,7 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.Template.Resources
-            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+            using var p = JsonDocument.Parse(deployment.Template.Resources["Subnet1"].Properties);
             Assert.True(p.RootElement.TryGetProperty("serviceEndpoints", out JsonElement serviceEndpoints_t));
             foreach (var item in serviceEndpoints_t.EnumerateArray())
             {
@@ -427,25 +439,25 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "Add_JobjectExist")]
         public void Add_JobjectExist()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var deployment = new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "ModifyEffect_Add_JobjectExist",
                 Template = TestHelper.GetJsonFileContent("json/template/subnet")
-            });
+            };
+            var rtv = this.fixture.PolicyService.Validate(deployment);
             Assert.True(rtv.Result);
-            Assert.NotNull(rtv.DeploymentOrchestrationInput);
             Assert.NotNull(rtv.PolicyContext);
 
             // rtv.PolicyContext.Resource
-            using var pc = JsonDocument.Parse(rtv.PolicyContext.Resource.RawString);
+            using var pc = JsonDocument.Parse(rtv.PolicyContext.Resource.ToString());
             Assert.True(pc.RootElement.TryGetProperty("properties", out JsonElement properties_pc));
             Assert.True(properties_pc.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup_pc));
             Assert.True(networkSecurityGroup_pc.TryGetProperty("id", out JsonElement v_pc));
             Assert.Equal("123", v_pc.GetString());
 
             //rtv.DeploymentOrchestrationInput.TemplateContent
-            using var doc = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.RawString);
+            using var doc = JsonDocument.Parse(deployment.Template.ToString());
             Assert.True(doc.RootElement.TryGetProperty("resources", out JsonElement resources));
             foreach (var r in resources.EnumerateArray())
             {
@@ -456,7 +468,7 @@ namespace AzurePolicyTest
             }
 
             // rtv.DeploymentOrchestrationInput.Template
-            using var p = JsonDocument.Parse(rtv.DeploymentOrchestrationInput.Template.Resources["Subnet1"].Properties);
+            using var p = JsonDocument.Parse(deployment.Template.Resources["Subnet1"].Properties);
             Assert.True(p.RootElement.TryGetProperty("networkSecurityGroup", out JsonElement networkSecurityGroup_t));
             Assert.True(networkSecurityGroup_t.TryGetProperty("id", out JsonElement id_t));
             Assert.Equal("123", id_t.GetString());

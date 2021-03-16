@@ -1,7 +1,4 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using maskx.ARMOrchestration;
 using Xunit;
 
 namespace AzurePolicyTest
@@ -20,7 +17,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "name")]
         public void Name()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Field_name",
@@ -33,7 +30,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "type")]
         public void Type()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Field_type",
@@ -46,7 +43,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "fullName")]
         public void FullName()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Field_fullName",

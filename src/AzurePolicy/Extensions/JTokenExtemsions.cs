@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using maskx.ARMOrchestration.Functions;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace maskx.AzurePolicy.Extensions
@@ -257,6 +259,89 @@ namespace maskx.AzurePolicy.Extensions
                     }
                 }
             }
+        }
+        private static (string First, string Remain) SplitPath(string path)
+        {
+            int index = path.IndexOf("[*]");
+            if (index < 0)
+                return (path, "");
+            else if (index == 0)
+                return ("[*]", path.Substring(3));
+            else
+                return (path.Substring(0, index), path.Substring(index));
+        }
+        public static List<object> GetElements(this JToken token, List<string> path)
+        {
+            List<object> rtv = new List<object>();
+            var p = SplitPath(path[0]);
+            var paths=new List<string>();
+            if (!string.IsNullOrEmpty(p.Remain))
+                paths.Add(p.Remain);
+            for (int i = 1; i < path.Count; i++)
+            {
+                paths.Add(path[i]);
+            }
+            if (token is JArray array)
+            {
+                if (p.First == "[*]")
+                {
+                    foreach (var a in array)
+                    {
+                        if (paths.Count == 0)
+                            rtv.Add(a.GetValue());
+                        else
+                            rtv.AddRange(a.GetElements(paths));
+                    }
+                }
+            }
+            else if (token is JObject obj)
+            {
+                if (obj.TryGetValue(p.First, out JToken t))
+                {
+                    if (paths.Count == 0)
+                        rtv.Add(t.GetValue());
+                    else
+                        rtv.AddRange(t.GetElements(paths));
+                }
+            }
+            return rtv;
+        }
+        public static object GetValue(this JToken token)
+        {
+            object rtv = null;
+            switch (token.Type)
+            {
+                case JTokenType.None:
+                case JTokenType.Constructor:
+                case JTokenType.Property:
+                case JTokenType.Comment:
+                case JTokenType.Null:
+                case JTokenType.Undefined:
+                case JTokenType.Raw:
+                case JTokenType.Bytes:
+                case JTokenType.Guid:
+                case JTokenType.Uri:
+                case JTokenType.TimeSpan:
+                case JTokenType.Date:
+                    break;
+                case JTokenType.Object:
+                case JTokenType.Array:
+                    rtv = new JsonValue(token.ToString(Newtonsoft.Json.Formatting.Indented));
+                    break;
+                case JTokenType.Float:
+                case JTokenType.Integer:
+                    rtv = token.Value<int>();
+                    break;
+                case JTokenType.String:
+                    rtv = token.Value<string>();
+                    break;
+                case JTokenType.Boolean:
+                    rtv = token.Value<bool>();
+                    break;
+                default:
+                    break;
+            }
+            return rtv;
         }
     }
 }

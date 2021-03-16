@@ -1,4 +1,4 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
 using Xunit;
 
 namespace AzurePolicyTest
@@ -17,7 +17,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "NestTemplate")]
         public void NestTemplate()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "PolicyService_nestTemplate",
@@ -31,12 +31,12 @@ namespace AzurePolicyTest
         public void CopyResource()
         {
             // todo: test CopyResource
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "PolicyService_CopyResource",
                 Template = TestHelper.GetJsonFileContent("json/template/vnetWithCopy"),
-                DeploymentName= "PolicyService_CopyResource"
+                Name= "PolicyService_CopyResource"
             });
             Assert.False(rtv.Result);
             Assert.NotNull(rtv.PolicyContext);

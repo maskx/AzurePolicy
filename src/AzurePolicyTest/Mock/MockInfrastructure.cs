@@ -1,5 +1,5 @@
-﻿using maskx.ARMOrchestration.ARMTemplate;
-using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
+using maskx.ARMOrchestration.ARMTemplate;
 using maskx.AzurePolicy;
 using maskx.AzurePolicy.Definitions;
 using maskx.AzurePolicy.Services;
@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace AzurePolicyTest.Mock
 {
-    public class MockInfrastructure : IInfrastructure
+    public class MockInfrastructure : maskx.AzurePolicy.IInfrastructure
     {
         private readonly Logical _Logical;
 
@@ -74,7 +74,7 @@ namespace AzurePolicyTest.Mock
             return false;
         }
 
-        public void Deploy(DeploymentOrchestrationInput input)
+        public void Deploy(Deployment input)
         {
             throw new System.NotImplementedException();
         }
@@ -84,7 +84,7 @@ namespace AzurePolicyTest.Mock
             throw new System.NotImplementedException();
         }
 
-        public DeploymentOrchestrationInput GetDeploymentOrchestrationInput(string scope)
+        public Deployment GetDeploymentOrchestrationInput(string scope)
         {
             throw new System.NotImplementedException();
         }

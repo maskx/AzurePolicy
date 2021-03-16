@@ -1,4 +1,4 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
 using Xunit;
 
 namespace AzurePolicyTest
@@ -17,33 +17,31 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "Disabled")]
         public void Disabled()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Effect_Disabled",
                 Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "Deny")]
         public void Deny()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "Effect_Deny",
                 Template = TestHelper.GetJsonFileContent("json/template/vm")
             });
             Assert.False(rtv.Result);
-            Assert.NotNull(rtv.PolicyContext);
         }
 
         [Fact(DisplayName = "DenyIfNotExists_ExistsInTemplate")]
         public void DenyIfNotExists_ExistsInTemplate()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "DenyIfNotExists_ExistsInTemplate",
@@ -55,7 +53,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "DenyIfNotExists_ExistsInInfrastructure")]
         public void DenyIfNotExists_ExistsInInfrastructure()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "DenyIfNotExists_ExistsInInfrastructure",
@@ -67,7 +65,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "DenyIfNotExists_ExistsInTemplateWithCondition")]
         public void DenyIfNotExists_ExistsInTemplateWithCondition()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "DenyIfNotExists_ExistsInTemplateWithCondition",
@@ -79,7 +77,7 @@ namespace AzurePolicyTest
         [Fact(DisplayName = "DenyIfNotExists_ExistsInInfrastructureWithCondition")]
         public void DenyIfNotExists_ExistsInInfrastructureWithCondition()
         {
-            var rtv = this.fixture.PolicyService.Validate(new DeploymentOrchestrationInput()
+            var rtv = this.fixture.PolicyService.Validate(new Deployment()
             {
                 SubscriptionId = TestHelper.SubscriptionId,
                 ResourceGroup = "DenyIfNotExists_ExistsInInfrastructureWithCondition",

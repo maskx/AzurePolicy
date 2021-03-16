@@ -2,6 +2,9 @@
 using maskx.AzurePolicy.Extensions;
 using maskx.AzurePolicy.Services;
 using maskx.Expression;
+using Microsoft.SqlServer.Management.HadrModel;
+using Microsoft.SqlServer.Management.Smo.Agent;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -172,7 +175,7 @@ namespace maskx.AzurePolicy.Functions
                 int numberToSkip = Convert.ToInt32(pars[1]);
                 if (pars[0] is string s)
                 {
-                    args.Result = s.Substring(numberToSkip);
+                    args.Result = s[numberToSkip..];
                 }
                 else if (pars[0] is JsonValue jv)
                 {
@@ -369,7 +372,7 @@ namespace maskx.AzurePolicy.Functions
             {
                 var par1 = args.Parameters[0].Evaluate(cxt);
                 var s = (par1 as string);
-                s = s.Substring(s.LastIndexOf(',') + 1).Trim();
+                s = s[(s.LastIndexOf(',') + 1)..].Trim();
                 var base64EncodedBytes = Convert.FromBase64String(s);
                 args.Result = Encoding.UTF8.GetString(base64EncodedBytes);
             });
@@ -496,7 +499,7 @@ namespace maskx.AzurePolicy.Functions
                 }
                 else
                 {
-                    args.Result = s.Substring(startIndex);
+                    args.Result = s[startIndex..];
                 }
             });
             Functions.Add("tolower", (args, cxt) =>
@@ -674,11 +677,12 @@ namespace maskx.AzurePolicy.Functions
             return function;
         }
 
+
         public object Field(string fieldPath, PolicyContext policyContext)
         {
-            using var doc = JsonDocument.Parse(policyContext.Resource.RawString);
+            using var doc = JsonDocument.Parse(policyContext.Resource.ToString());
             var root = doc.RootElement;
-            var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, policyContext.Resource.Input } };
+            var context = new Dictionary<string, object>() { { ARMOrchestration.Functions.ContextKeys.ARM_CONTEXT, policyContext.Resource.Deployment } };
             int index = fieldPath.LastIndexOf('/');
             if (index > 0)//property aliases
             {
@@ -687,7 +691,9 @@ namespace maskx.AzurePolicy.Functions
                 if (!string.Equals(fullType, type, StringComparison.OrdinalIgnoreCase))
                     return -1;
                 var p = fieldPath.Remove(0, index + 1);
-                var r = root.GetProperty("properties").GetElements(p.Split('.').ToList(), _ARMFunctions, context);
+                var jobj = JObject.Parse(policyContext.Resource.Properties);
+                var r = jobj.GetElements(p.Split('.').ToList());
+              //  var r = root.GetProperty("properties").GetElements(p.Split('.').ToList(), _ARMFunctions, context);
                 if (p.Contains("[*]"))
                     return r;
                 return r.FirstOrDefault();

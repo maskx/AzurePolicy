@@ -1,4 +1,5 @@
-﻿using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
+using maskx.ARMOrchestration.Orchestrations;
 
 namespace maskx.AzurePolicy.Services
 {
@@ -14,10 +15,6 @@ namespace maskx.AzurePolicy.Services
         /// </summary>
         public string Message { get; set; }
 
-        /// <summary>
-        /// the evaluated deployment
-        /// </summary>
-        public DeploymentOrchestrationInput DeploymentOrchestrationInput { get; set; }
 
         /// <summary>
         /// the last evaluated policyContext

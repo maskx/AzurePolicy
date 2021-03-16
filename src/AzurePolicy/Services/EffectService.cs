@@ -1,5 +1,5 @@
-﻿using maskx.ARMOrchestration.ARMTemplate;
-using maskx.ARMOrchestration.Orchestrations;
+﻿using maskx.ARMOrchestration;
+using maskx.ARMOrchestration.ARMTemplate;
 using maskx.AzurePolicy.Extensions;
 using maskx.AzurePolicy.Functions;
 using Newtonsoft.Json.Linq;
@@ -12,7 +12,7 @@ namespace maskx.AzurePolicy.Services
 {
     public class EffectService
     {
-        private static Dictionary<string, int> EffectPriority = new Dictionary<string, int>();
+        private static readonly Dictionary<string, int> EffectPriority = new Dictionary<string, int>();
 
         public static int GetPriority(string name)
         {
@@ -102,14 +102,14 @@ namespace maskx.AzurePolicy.Services
             if (doc.RootElement.TryGetProperty("deploymentScope ", out JsonElement deploymentScopeE))
                 deploymentScope = _PolicyFunction.Evaluate(deploymentScopeE.GetString(), context).ToString();
 
-            ARMOrchestration.DeploymentMode mode = ARMOrchestration.DeploymentMode.Incremental;
+            DeploymentMode mode = DeploymentMode.Incremental;
             if (propertiesE.TryGetProperty("mode", out JsonElement modeE))
             {
-                mode = (ARMOrchestration.DeploymentMode)Enum.Parse(typeof(ARMOrchestration.DeploymentMode), _PolicyFunction.Evaluate(modeE.GetString(), context).ToString());
+                mode = (DeploymentMode)Enum.Parse(typeof(DeploymentMode), _PolicyFunction.Evaluate(modeE.GetString(), context).ToString());
             }
 
             var policyContext = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
-            var deployContext = policyContext.Resource.Input;
+            var deployContext = policyContext.Resource.Deployment;
 
             string subscriptionId = null, managementGroupId = null, resourceGroup = null;
 
@@ -133,13 +133,13 @@ namespace maskx.AzurePolicy.Services
 
             var (groupId, groupType, hierarchyId) = _ARMInfrastructure.GetGroupInfo(managementGroupId, subscriptionId, resourceGroup);
 
-            var input = new DeploymentOrchestrationInput()
+            var input = new Deployment()
             {
                 Mode = mode,
-                RootId = policyContext.Resource.Input.DeploymentId,
+                RootId = policyContext.Resource.Deployment.DeploymentId,
                 DependsOn = new DependsOnCollection(),
                 ApiVersion = deployContext.ApiVersion,
-                DeploymentName = $"{deployContext.DeploymentName}_DeployIfNotExists_{Guid.NewGuid()}",
+                Name = $"{deployContext.Name}_DeployIfNotExists_{Guid.NewGuid()}",
                 DeploymentId = Guid.NewGuid().ToString("N"),
                 Template = template,
                 Parameters = parameters,
@@ -153,7 +153,7 @@ namespace maskx.AzurePolicy.Services
                 CreateByUserId = deployContext.CreateByUserId,
                 LastRunUserId = deployContext.CreateByUserId
             };
-            input.DependsOn.Add(policyContext.Resource.Input.ResourceId, input);
+            input.DependsOn.Add(policyContext.Resource.Deployment.ResourceId, input);
             _PolicyInfrastructure.Deploy(input);
             return true;
         }
@@ -177,7 +177,7 @@ namespace maskx.AzurePolicy.Services
             if (root.TryGetProperty("resourceGroupName", out JsonElement rgE))
                 resourceGroupName = _PolicyFunction.Evaluate(rgE.GetString(), context).ToString();
             else
-                resourceGroupName = (context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext).Resource.Input.ResourceGroup;
+                resourceGroupName = (context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext).Resource.Deployment.ResourceGroup;
             if (root.TryGetProperty("existenceScope", out JsonElement existenceScopeE))
                 existenceScope = _PolicyFunction.Evaluate(existenceScopeE.GetString(), context).ToString();
             if (root.TryGetProperty("existenceCondition", out JsonElement ExistenceConditionE))
@@ -192,7 +192,7 @@ namespace maskx.AzurePolicy.Services
         private bool FindInResourceCollection(ResourceCollection resources, string type, string name, JsonElement? condition, Dictionary<string, object> context)
         {
             var policyContext = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
-            var deployContext = policyContext.Resource.Input;
+            var deployContext = policyContext.Resource.Deployment;
             if (resources.Any((r) =>
             {
                 if (r.Type != type)
@@ -218,7 +218,7 @@ namespace maskx.AzurePolicy.Services
         private bool FindInTemplate(string type, string name, string rg, JsonElement? condition, Dictionary<string, object> context)
         {
             var policyContext = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
-            var input = policyContext.Resource.Input;
+            var input = policyContext.Resource.Deployment;
             if (input.ResourceGroup == rg)
             {
                 if (FindInResourceCollection(input.Template.Resources, type, name, condition, context))
@@ -242,7 +242,7 @@ namespace maskx.AzurePolicy.Services
         private bool Modify(string detail, Dictionary<string, object> context)
         {
             var policyCxt = context[Functions.ContextKeys.POLICY_CONTEXT] as PolicyContext;
-            var resource = JObject.Parse(policyCxt.Resource.RawString);
+            var resource = JObject.Parse(policyCxt.Resource.ToString());
             var properties = resource["properties"] as JObject;
             using var doc = JsonDocument.Parse(detail);
             var operations = doc.RootElement.GetProperty("operations");
@@ -339,9 +339,7 @@ namespace maskx.AzurePolicy.Services
             if (!this._Effects.TryGetValue(policyContext.PolicyDefinition.PolicyRule.Then.Name.ToLower(), out Func<string, Dictionary<string, object>, bool> func))
                 throw new Exception($"cannot find an effect named '{policyContext.PolicyDefinition.PolicyRule.Then.Name.ToLower()}'");
             return func(policyContext.PolicyDefinition.PolicyRule.Then.Details,
-                  new Dictionary<string, object>() {
-                    { ContextKeys.POLICY_CONTEXT,policyContext}
-                  });
+                  new Dictionary<string, object>() { { ContextKeys.POLICY_CONTEXT, policyContext } });
         }
     }
 }
